@@ -1,0 +1,23 @@
+{
+    // http://eslint.org/docs/user-guide/configuring.html
+    // https://gist.github.com/cletusw/e01a85e399ab563b1236
+    "ecmaFeatures": {
+        "jsx": true,
+        "experimentalObjectRestSpread": true
+    },
+    "env": {
+        "browser": false,
+        "es6": true,
+        "node": true
+    },
+    "extends": "eslint:recommended",
+    "rules": {
+        "indent": [ "error", 4 ],
+        "linebreak-style": [ "error", "unix" ],
+        "no-console": "off",
+        "no-debugger": "off",
+        "no-shadow": "off",
+        "quotes": "off",                            // http://eslint.org/docs/rules/quotes
+        "semi": [ "error", "always" ]
+    }
+}

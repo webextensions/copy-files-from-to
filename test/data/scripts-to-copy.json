@@ -1,0 +1,6 @@
+[
+    {
+        "from": "../../node_modules/chalk/index.js",
+        "to": "this-file-is-git-ignored.js"
+    }
+]
