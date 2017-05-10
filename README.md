@@ -14,11 +14,11 @@ Create a file, say `list.json` which looks like:
             "to": "http-pub/3rdparty/jquery/jquery.js"
         },
         {
-            "from": "node_modules/react/dist/react.js",
-            "to": {
-	            "default": "http-pub/3rdparty/react/react.js",
-	            "prod": "http-pub/3rdparty/react/react.min.js"
-	        }
+            "from": {
+                "default": "node_modules/react/dist/react.js",
+                "prod": "node_modules/react/dist/react.min.js"
+            },
+            "to": "http-pub/3rdparty/react/react.js"
         }
     ]
 
@@ -36,7 +36,7 @@ Create a file, say `list.json` which looks like:
     $ copy-files-from-to list.json prod
     Starting copy operation in "prod" mode: (overwrite option is on)
     Copying node_modules/jquery/dist/jquery.js to http-pub/3rdparty/jquery/jquery.js ✓
-    Copying node_modules/react/dist/react.js to http-pub/3rdparty/react/react.min.js ✓
+    Copying node_modules/react/dist/react.min.js to http-pub/3rdparty/react/react.js ✓
 
 **Use cases**
 

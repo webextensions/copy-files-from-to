@@ -48,8 +48,8 @@ var errorsCaught = 0;
 filesToCopy = filesToCopy.map(function (fileToCopy) {
     var mappedObject = {};
     try {
-        mappedObject.from = path.join(sourceFileDirectory, fileToCopy.from);
-        mappedObject.to = path.join(sourceFileDirectory, fileToCopy.to[mode] || fileToCopy.to['default'] || fileToCopy.to);
+        mappedObject.from = path.join(sourceFileDirectory, fileToCopy.from[mode] || fileToCopy.from['default'] || fileToCopy.from);
+        mappedObject.to = path.join(sourceFileDirectory, fileToCopy.to);
     } catch (e) {
         errorsCaught++;
         console.log(chalk.red('Something is wrong in the structure of list of files to copy.'));
