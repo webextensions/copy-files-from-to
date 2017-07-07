@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 
+var path = require('path');
+
 var chalk = require('chalk'),
-    path = require('path');
+    async = require('async'),
+    request = require('request');
 
 var readListFromFile = null;
 
@@ -57,9 +60,12 @@ try {
     exitWithError(e, 'Error in reading file: ' + sourceFile);
 }
 
-var filesToCopy;
+var filesToCopy = {};
+var settings = {};
 try {
-    filesToCopy = JSON.parse(jsonText);
+    var jsonData = JSON.parse(jsonText);
+    filesToCopy = jsonData.filesToCopy;
+    settings = jsonData.settings;
 } catch (e) {
     exitWithError(e, 'Invalid JSON data:\n    ' + jsonText.replace(/\n/g, '\n    '));
 }
@@ -73,7 +79,13 @@ filesToCopy = filesToCopy.map(function (fileToCopy) {
         to = fileToCopy.to[mode] || fileToCopy.to['default'] || fileToCopy.to;
     if (typeof from === 'string' && typeof to === 'string') {
         return {
-            from: path.join(sourceFileDirectory, from),
+            originalFrom: from,
+            from: (function () {
+                if (from.indexOf('http://') === 0 || from.indexOf('https://') === 0) {
+                    return from;
+                }
+                return path.join(sourceFileDirectory, from);
+            }()),
             to: path.join(sourceFileDirectory, to)
         };
     } else {
@@ -94,32 +106,69 @@ filesToCopy = filesToCopy.map(function (fileToCopy) {
 });
 
 var getRelativePath = function (fullPath) {
+    if (fullPath.indexOf('http://') === 0 || fullPath.indexOf('https://') === 0) {
+        return fullPath;
+    }
     return path.relative(pwd, fullPath);
+};
+
+function writeFile (fileToCopy, cb) {
+    var originalFrom = fileToCopy.originalFrom,
+        from = fileToCopy.from,
+        to = fileToCopy.to;
+    process.stdout.write('Copying ' + chalk.gray(getRelativePath(from)) + ' to ' + chalk.gray(getRelativePath(to)));
+    if (from.indexOf('http://') === 0 || from.indexOf('https://') === 0) {
+        request(from, function (err, response, body) {
+            if (response.statusCode === 200) {
+                fs.writeFileSync(to, body);
+                if (settings.addLinkToSourceOfOrigin) {
+                    fs.writeFileSync(to + '.source.txt', originalFrom);
+                }
+                process.stdout.write(chalk.green(' ✓') + '\n');
+            } else {
+                errorsCaught++;
+                process.stdout.write(chalk.red(' ✗') + '\n');
+            }
+            cb();
+        });
+    } else {
+        try {
+            cpFile.sync(from, to, {overwrite: true});
+            fs.writeFileSync(to + '.source.txt', originalFrom);
+            process.stdout.write(chalk.green(' ✓') + '\n');
+        } catch (e) {
+            errorsCaught++;
+            process.stdout.write(chalk.red(' ✗') + '\n');
+        }
+        cb();
+    }
+    return true;
+}
+
+var done = function () {
+    if (errorsCaught) {
+        if (errorsCaught === 1) {
+            console.log(chalk.red('\nCaught ' + errorsCaught + ' error. Please check.'));
+        } else {
+            console.log(chalk.red('\nCaught ' + errorsCaught + ' errors. Please check.'));
+        }
+        process.exit(1);
+    }
 };
 
 if (filesToCopy.length) {
     console.log(chalk.blue('\nStarting copy operation in ' + (mode ? '"' + mode + '"' : 'default') + ' mode:') + chalk.yellow(' (overwrite option is on)'));
-    filesToCopy.forEach(function (fileToCopy) {
-        if (fileToCopy) {
-            process.stdout.write('Copying ' + chalk.gray(getRelativePath(fileToCopy.from)) + ' to ' + chalk.gray(getRelativePath(fileToCopy.to)));
-            try {
-                cpFile.sync(fileToCopy.from, fileToCopy.to, {overwrite: true});
-                process.stdout.write(chalk.green(' ✓') + '\n');
-            } catch (e) {
-                errorsCaught++;
-                process.stdout.write(chalk.red(' ✗') + '\n');
-            }
-        }
-    });
+
+    async.eachLimit(
+        filesToCopy,
+        1,
+        function (fileToCopy, callback) {
+            writeFile(fileToCopy, function () {
+                callback();
+            });
+        },
+        done
+    );
 } else {
     console.log(chalk.yellow('No instructions provided for copy operation.'));
-}
-
-if (errorsCaught) {
-    if (errorsCaught === 1) {
-        console.log(chalk.red('\nCaught ' + errorsCaught + ' error. Please check.'));
-    } else {
-        console.log(chalk.red('\nCaught ' + errorsCaught + ' errors. Please check.'));
-    }
-    process.exit(1);
 }

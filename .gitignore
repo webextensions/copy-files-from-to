@@ -1,6 +1,3 @@
-# Custom ignored paths
-test/data/this-file-is-git-ignored.js
-
 # Logs
 logs
 *.log

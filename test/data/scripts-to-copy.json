@@ -1,6 +1,15 @@
-[
-    {
-        "from": "../../node_modules/chalk/index.js",
-        "to": "this-file-is-git-ignored.js"
-    }
-]
+{
+    "settings": {
+        "addLinkToSourceOfOrigin": true
+    },
+    "filesToCopy": [
+        {
+            "from": "../../node_modules/chalk/index.js",
+            "to": "this-file-is-git-ignored.js"
+        },
+        {
+            "from": "https://raw.githubusercontent.com/mikehostetler/amplify/master/lib/amplify.js",
+            "to": "this-file-is-git-ignored-as-well.js"
+        }
+    ]
+}
