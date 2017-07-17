@@ -80,6 +80,7 @@ filesToCopy = filesToCopy.map(function (fileToCopy) {
     if (typeof from === 'string' && typeof to === 'string') {
         return {
             originalFrom: from,
+            latestVersion: fileToCopy.latestVersion,
             from: (function () {
                 if (from.indexOf('http://') === 0 || from.indexOf('https://') === 0) {
                     return from;
@@ -114,11 +115,12 @@ var getRelativePath = function (fullPath) {
 
 function writeFile (fileToCopy, cb) {
     var originalFrom = fileToCopy.originalFrom,
+        latestVersion = fileToCopy.latestVersion,
         from = fileToCopy.from,
         to = fileToCopy.to;
     var strFromTo = chalk.gray(getRelativePath(from)) + ' to ' + chalk.gray(getRelativePath(to)),
-        successMessage = chalk.green(' ✓') + ' Copied ' + strFromTo + '\n',
-        errorMessage = chalk.red(' ✗') + ' Failed to copy ' + strFromTo + '\n';
+        successMessage = chalk.green(' ✓') + ' Copied ' + strFromTo,
+        errorMessage = chalk.red(' ✗') + ' Failed to copy ' + strFromTo;
     if (from.indexOf('http://') === 0 || from.indexOf('https://') === 0) {
         request(from, function (err, response, body) {
             if (response.statusCode === 200) {
@@ -126,21 +128,37 @@ function writeFile (fileToCopy, cb) {
                 if (settings.addLinkToSourceOfOrigin) {
                     fs.writeFileSync(to + '.source.txt', originalFrom);
                 }
-                process.stdout.write(successMessage);
+                if (latestVersion) {
+                    request(latestVersion, function (errLatest, responseLatest, bodyLatest) {
+                        if (responseLatest.statusCode === 200) {
+                            if (bodyLatest !== body) {
+                                console.log(successMessage + chalk.yellow(' (updates available)'));
+                            } else {
+                                console.log(successMessage + chalk.green(' (up to date)'));
+                            }
+                        } else {
+                            console.log(successMessage + chalk.yellow(' (but couldn\'t compare it with latest version)'));
+                        }
+                    });
+                } else {
+                    console.log(successMessage);
+                }
             } else {
                 errorsCaught++;
-                process.stdout.write(errorMessage);
+                console.log(errorMessage);
             }
             cb();
         });
     } else {
         try {
             cpFile.sync(from, to, {overwrite: true});
-            fs.writeFileSync(to + '.source.txt', originalFrom);
-            process.stdout.write(successMessage);
+            if (settings.addLinkToSourceOfOrigin) {
+                fs.writeFileSync(to + '.source.txt', originalFrom);
+            }
+            console.log(successMessage);
         } catch (e) {
             errorsCaught++;
-            process.stdout.write(errorMessage);
+            console.log(errorMessage);
         }
         cb();
     }
