@@ -1,10 +1,6 @@
 {
     // http://eslint.org/docs/user-guide/configuring.html
     // https://gist.github.com/cletusw/e01a85e399ab563b1236
-    "ecmaFeatures": {
-        "jsx": true,
-        "experimentalObjectRestSpread": true
-    },
     "env": {
         "browser": false,
         "es6": true,

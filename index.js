@@ -116,7 +116,9 @@ function writeFile (fileToCopy, cb) {
     var originalFrom = fileToCopy.originalFrom,
         from = fileToCopy.from,
         to = fileToCopy.to;
-    process.stdout.write('Copying ' + chalk.gray(getRelativePath(from)) + ' to ' + chalk.gray(getRelativePath(to)));
+    var strFromTo = chalk.gray(getRelativePath(from)) + ' to ' + chalk.gray(getRelativePath(to)),
+        successMessage = chalk.green(' ✓') + ' Copied ' + strFromTo + '\n',
+        errorMessage = chalk.red(' ✗') + ' Failed to copy ' + strFromTo + '\n';
     if (from.indexOf('http://') === 0 || from.indexOf('https://') === 0) {
         request(from, function (err, response, body) {
             if (response.statusCode === 200) {
@@ -124,10 +126,10 @@ function writeFile (fileToCopy, cb) {
                 if (settings.addLinkToSourceOfOrigin) {
                     fs.writeFileSync(to + '.source.txt', originalFrom);
                 }
-                process.stdout.write(chalk.green(' ✓') + '\n');
+                process.stdout.write(successMessage);
             } else {
                 errorsCaught++;
-                process.stdout.write(chalk.red(' ✗') + '\n');
+                process.stdout.write(errorMessage);
             }
             cb();
         });
@@ -135,10 +137,10 @@ function writeFile (fileToCopy, cb) {
         try {
             cpFile.sync(from, to, {overwrite: true});
             fs.writeFileSync(to + '.source.txt', originalFrom);
-            process.stdout.write(chalk.green(' ✓') + '\n');
+            process.stdout.write(successMessage);
         } catch (e) {
             errorsCaught++;
-            process.stdout.write(chalk.red(' ✗') + '\n');
+            process.stdout.write(errorMessage);
         }
         cb();
     }
@@ -161,7 +163,7 @@ if (filesToCopy.length) {
 
     async.eachLimit(
         filesToCopy,
-        1,
+        8,
         function (fileToCopy, callback) {
             writeFile(fileToCopy, function () {
                 callback();
