@@ -38,7 +38,8 @@
     "async": "2.5.0",
     "chalk": "2.0.1",
     "cp-file": "4.2.0",
-    "request": "2.81.0"
+    "request": "2.81.0",
+    "uglify-js": "3.0.26"
   },
   "devDependencies": {
     "eslint": "4.2.0",

@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 
-var path = require('path');
+var path = require('path'),
+    fs = require('fs');
+
+var packageJson = require('./package.json');
 
 var chalk = require('chalk'),
     async = require('async'),
-    request = require('request');
+    request = require('request'),
+    UglifyJS = require('uglify-js');
 
 var readListFromFile = null;
 
@@ -36,9 +40,6 @@ var exitWithError = function (e, errMsg) {
     process.exit(1);
 };
 
-var cpFile = require('cp-file'),
-    fs = require('fs');
-
 var sourceFile,
     sourceFileDirectory;
 
@@ -60,8 +61,8 @@ try {
     exitWithError(e, 'Error in reading file: ' + sourceFile);
 }
 
-var filesToCopy = {};
-var settings = {};
+var filesToCopy = {},
+    settings = {};
 try {
     var jsonData = JSON.parse(jsonText);
     filesToCopy = jsonData.filesToCopy;
@@ -75,11 +76,28 @@ var mode = process.argv[3];
 var errorsCaught = 0;
 
 filesToCopy = filesToCopy.map(function (fileToCopy) {
-    var from = fileToCopy.from[mode] || fileToCopy.from['default'] || fileToCopy.from,
-        to = fileToCopy.to[mode] || fileToCopy.to['default'] || fileToCopy.to;
+    var from = null,
+        uglify = null;
+    if (typeof fileToCopy.from === 'string') {
+        from = fileToCopy.from;
+    } else {
+        var fromMode = fileToCopy.from[mode] || fileToCopy.from['default'] || {};
+        from = fromMode.src;
+        uglify = fromMode.uglify;
+    }
+
+    var to = null;
+    if (typeof fileToCopy.to === 'string') {
+        to = fileToCopy.to;
+    } else {
+        var toMode = fileToCopy.to[mode] || fileToCopy.to['default'] || {};
+        to = toMode.dest;
+    }
+
     if (typeof from === 'string' && typeof to === 'string') {
         return {
-            originalFrom: from,
+            intendedFrom: from,
+            intendedTo: to,
             latestVersion: fileToCopy.latestVersion,
             from: (function () {
                 if (from.indexOf('http://') === 0 || from.indexOf('https://') === 0) {
@@ -87,7 +105,8 @@ filesToCopy = filesToCopy.map(function (fileToCopy) {
                 }
                 return path.join(sourceFileDirectory, from);
             }()),
-            to: path.join(sourceFileDirectory, to)
+            to: path.join(sourceFileDirectory, to),
+            uglify: uglify
         };
     } else {
         errorsCaught++;
@@ -96,10 +115,10 @@ filesToCopy = filesToCopy.map(function (fileToCopy) {
         }
         console.log('');
         if (typeof from !== 'string') {
-            console.log(chalk.yellow('    Please make sure that the value for "from" is a string OR "from.default" exists OR handles the "from.<mode>" you expect it to run with.'));
+            console.log(chalk.yellow('    Please make sure that the value for "from" is a string OR "from.default.src" exists OR handles the "from.<mode>.src" you expect it to run with.'));
         }
         if (typeof to !== 'string') {
-            console.log(chalk.yellow('    Please make sure that the value for "to" is a string OR "to.default" exists OR handles the "to.<mode>" you expect it to run with.'));
+            console.log(chalk.yellow('    Please make sure that the value for "to" is a string OR "to.default.dest" exists OR handles the "to.<mode>.dest" you expect it to run with.'));
         }
         console.log(chalk.yellow('    ' + JSON.stringify(fileToCopy, null, '    ').replace(/\n/g, '\n    ')));
         return null;
@@ -113,56 +132,144 @@ var getRelativePath = function (fullPath) {
     return path.relative(pwd, fullPath);
 };
 
-function writeFile (fileToCopy, cb) {
-    var originalFrom = fileToCopy.originalFrom,
-        latestVersion = fileToCopy.latestVersion,
-        from = fileToCopy.from,
-        to = fileToCopy.to;
-    var strFromTo = chalk.gray(getRelativePath(from)) + ' to ' + chalk.gray(getRelativePath(to)),
-        successMessage = chalk.green(' ✓') + ' Copied ' + strFromTo,
-        errorMessage = chalk.red(' ✗') + ' Failed to copy ' + strFromTo;
-    if (from.indexOf('http://') === 0 || from.indexOf('https://') === 0) {
-        request(from, function (err, response, body) {
+var readContents = function (fileToCopy, cb) {
+    var source = fileToCopy.from;
+    if (source.indexOf('http://') === 0 || source.indexOf('https://') === 0) {
+        request(source, function (err, response, body) {
             if (response.statusCode === 200) {
-                fs.writeFileSync(to, body);
-                if (settings.addLinkToSourceOfOrigin) {
-                    fs.writeFileSync(to + '.source.txt', originalFrom);
-                }
-                if (latestVersion) {
-                    request(latestVersion, function (errLatest, responseLatest, bodyLatest) {
-                        if (responseLatest.statusCode === 200) {
-                            if (bodyLatest !== body) {
-                                console.log(successMessage + chalk.yellow(' (updates available)'));
-                            } else {
-                                console.log(successMessage + chalk.green(' (up to date)'));
-                            }
-                        } else {
-                            console.log(successMessage + chalk.yellow(' (but couldn\'t compare it with latest version)'));
-                        }
-                    });
-                } else {
-                    console.log(successMessage);
-                }
+                cb(null, body);
             } else {
-                errorsCaught++;
-                console.log(errorMessage);
+                cb(err);
             }
-            cb();
         });
     } else {
-        try {
-            cpFile.sync(from, to, {overwrite: true});
-            if (settings.addLinkToSourceOfOrigin) {
-                fs.writeFileSync(to + '.source.txt', originalFrom);
-            }
-            console.log(successMessage);
-        } catch (e) {
-            errorsCaught++;
-            console.log(errorMessage);
+        var contents = fs.readFileSync(source, 'utf8');
+        cb(null, contents);
+    }
+};
+
+var writeContents = function (fileToCopy, options, cb) {
+    var to = fileToCopy.to,
+        intendedFrom = fileToCopy.intendedFrom;
+    var contents = options.contents,
+        uglified = options.uglified;
+    fs.writeFileSync(to, contents);
+    if (settings.addLinkToSourceOfOrigin) {
+        var sourceDetails = intendedFrom;
+        if (uglified) {
+            sourceDetails += (uglified.uglifyCommand || '');
         }
+        fs.writeFileSync(to + '.source.txt', sourceDetails);
+    }
+    cb();
+};
+
+var checkForLatestVersion = function (fileToCopy, originalContents, cb) {
+    var latestVersion = fileToCopy.latestVersion;
+    if (latestVersion) {
+        request(latestVersion, function (errLatest, responseLatest, bodyLatest) {
+            if (responseLatest.statusCode === 200) {
+                if (bodyLatest !== originalContents) {
+                    cb(chalk.yellow(' (updates available)'));
+                } else {
+                    cb(chalk.green(' (up to date)'));
+                }
+            } else {
+                cb(chalk.yellow(' (but couldn\'t compare it with latest version)'));
+            }
+        });
+    } else {
         cb();
     }
-    return true;
+};
+
+var doUglify = function (needsUglify, code, cb) {
+    if (needsUglify) {
+        var result = UglifyJS.minify(
+            code,
+            // Equivalent to: uglifyjs <source> --compress sequences=false --beautify beautify=false,semicolons=false,comments=some --output <destination>
+            {
+                compress: {
+                    sequences: false
+                },
+                mangle: false,
+                output: {
+                    semicolons: false,
+                    comments: 'some'
+                }
+            }
+        );
+        cb(result.code);
+    } else {
+        cb(code);
+    }
+};
+
+var preWriteOperations = function (fileToCopy, contents, cb) {
+    var needsUglify = fileToCopy.uglify;
+    doUglify(needsUglify, contents, function (processedCode) {
+        if (needsUglify) {
+            cb({
+                contentsAfterPreWriteOperations: processedCode,
+                uglified: {
+                    uglifyCommand:
+                        '\n' +
+                        '\n' +
+                        '$ uglifyjs <source> --compress sequences=false --beautify beautify=false,semicolons=false,comments=some --output <destination>' +
+                        '\n' +
+                        '\nWhere:' +
+                        '\n    uglifyjs = npm install -g uglify-js@' + packageJson.dependencies['uglify-js'] +
+                        '\n    <source> = File ' + fileToCopy.intendedFrom +
+                        '\n    <destination> = File ./' + path.basename(fileToCopy.intendedTo)
+                }
+            });
+        } else {
+            cb({
+                contentsAfterPreWriteOperations: processedCode
+            });
+        }
+    });
+};
+
+var postWriteOperations = function (fileToCopy, originalContents, contentsAfterPreWriteOperations, cb) {
+    checkForLatestVersion(fileToCopy, originalContents, function (status) {
+        cb(status);
+    });
+};
+
+function copyFile (fileToCopy, cb) {
+    var from = fileToCopy.from,
+        to = fileToCopy.to;
+
+    var strFromTo = chalk.gray(getRelativePath(from)) + ' to ' + chalk.gray(getRelativePath(to));
+    var successMessage = chalk.green(' ✓') + ' Copied ' + strFromTo,
+        errorMessage = chalk.red(' ✗') + ' Failed to copy ' + strFromTo;
+
+    readContents(fileToCopy, function (err, originalContents) {
+        if (err) {
+            errorsCaught++;
+            console.log(errorMessage);
+            return;
+        }
+
+        preWriteOperations(fileToCopy, originalContents, function (options) {
+            var contentsAfterPreWriteOperations = options.contentsAfterPreWriteOperations,
+                uglified = options.uglified;
+            writeContents(
+                fileToCopy,
+                {
+                    contents: contentsAfterPreWriteOperations,
+                    uglified: uglified
+                },
+                function () {
+                    postWriteOperations(fileToCopy, originalContents, contentsAfterPreWriteOperations, function (appendToSuccessMessage) {
+                        console.log(successMessage + (appendToSuccessMessage || ''));
+                        cb();
+                    });
+                }
+            );
+        });
+    });
 }
 
 var done = function () {
@@ -177,13 +284,13 @@ var done = function () {
 };
 
 if (filesToCopy.length) {
-    console.log(chalk.blue('\nStarting copy operation in ' + (mode ? '"' + mode + '"' : 'default') + ' mode:') + chalk.yellow(' (overwrite option is on)'));
+    console.log(chalk.blue('\nStarting copy operation in "' + (mode || 'default') + '" mode:') + chalk.yellow(' (overwrite option is on)'));
 
     async.eachLimit(
         filesToCopy,
         8,
         function (fileToCopy, callback) {
-            writeFile(fileToCopy, function () {
+            copyFile(fileToCopy, function () {
                 callback();
             });
         },
