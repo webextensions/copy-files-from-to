@@ -35,14 +35,14 @@
   },
   "homepage": "https://github.com/webextensions/copy-files-from-to#readme",
   "dependencies": {
-    "async": "2.5.0",
-    "chalk": "2.0.1",
-    "cp-file": "4.2.0",
-    "request": "2.81.0",
-    "uglify-js": "3.0.26"
+    "async": "2.6.0",
+    "chalk": "2.4.1",
+    "cp-file": "5.0.0",
+    "request": "2.85.0",
+    "uglify-js": "3.3.22"
   },
   "devDependencies": {
-    "eslint": "4.2.0",
-    "mocha": "3.4.2"
+    "eslint": "4.19.1",
+    "mocha": "5.1.1"
   }
 }
