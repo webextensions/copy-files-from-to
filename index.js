@@ -43,12 +43,12 @@ var exitWithError = function (e, errMsg) {
 var sourceFile,
     sourceFileDirectory;
 
-var pwd = process.env.PWD;
+var pwd = process.cwd();
 
-if (readListFromFile.indexOf('/') === 0) {
+if (readListFromFile.indexOf('/') === 0 || readListFromFile.indexOf('\\') === 0) {
     sourceFile = readListFromFile;
 } else {
-    sourceFile = pwd + '/' + readListFromFile;
+    sourceFile = path.resolve(pwd, readListFromFile);
 }
 sourceFileDirectory = path.dirname(sourceFile);
 
