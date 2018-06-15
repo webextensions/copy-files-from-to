@@ -148,11 +148,22 @@ var readContents = function (fileToCopy, cb) {
     }
 };
 
+var mkdirp = require('mkdirp');
+var checkFolderExist = function(folderPath) {
+    if (!fs.existsSync(folderPath)) {
+        mkdirp(path.dirname(folderPath), function (error) {
+            console.error("Could not create directory", error);
+        });
+    }
+};
+
 var writeContents = function (fileToCopy, options, cb) {
     var to = fileToCopy.to,
         intendedFrom = fileToCopy.intendedFrom;
     var contents = options.contents,
         uglified = options.uglified;
+
+    checkFolderExist();
     fs.writeFileSync(to, contents);
     if (settings.addLinkToSourceOfOrigin) {
         var sourceDetails = intendedFrom;
