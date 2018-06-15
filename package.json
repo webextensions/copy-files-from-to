@@ -39,7 +39,8 @@
     "chalk": "2.4.1",
     "cp-file": "5.0.0",
     "request": "2.87.0",
-    "uglify-js": "3.3.25"
+    "uglify-js": "3.3.25",
+    "mkdirp": "0.5.1"
   },
   "devDependencies": {
     "eslint": "4.19.1",
