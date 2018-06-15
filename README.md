@@ -8,19 +8,24 @@ Copy files from one path to another.
 # Usage
 Create a file, say `list.json` which looks like:
 
-    [
-        {
-            "from": "node_modules/jquery/dist/jquery.js",
-            "to": "http-pub/3rdparty/jquery/jquery.js"
-        },
-        {
-            "from": {
-                "default": "node_modules/react/dist/react.js",
-                "prod": "node_modules/react/dist/react.min.js"
+    {
+        "filesToCopy": [
+            {
+                "from": "node_modules/jquery/dist/jquery.js",
+                "to": "http-pub/3rdparty/jquery/jquery.js"
             },
-            "to": "http-pub/3rdparty/react/react.js"
+            {
+                "from": {
+                    "default": "node_modules/react/dist/react.js",
+                    "prod": "node_modules/react/dist/react.min.js"
+                },
+                "to": "http-pub/3rdparty/react/react.js"
+            }
+        ],
+        "settings": {
+            "addLinkToSourceOfOrigin": false
         }
-    ]
+    }
 
 **Command**
 
