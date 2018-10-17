@@ -148,12 +148,13 @@ var readContents = function (fileToCopy, cb) {
     }
 };
 
-var mkdirp = require('mkdirp');
+var shell = require('shelljs');
 var checkFolderExist = function(folderPath) {
     if (!fs.existsSync(folderPath)) {
-        mkdirp(path.dirname(folderPath), function (error) {
-            console.error("Could not create directory", error);
-        });
+        if (path.sep === path.win32.sep){
+            folderPath = folderPath.replace(path.win32.sep, path.posix.sep);
+        }
+        shell.mkdir('-p', folderPath);
     }
 };
 
@@ -163,7 +164,7 @@ var writeContents = function (fileToCopy, options, cb) {
     var contents = options.contents,
         uglified = options.uglified;
 
-    checkFolderExist(to);
+    checkFolderExist(path.dirname(to));
     fs.writeFileSync(to, contents);
     if (settings.addLinkToSourceOfOrigin) {
         var sourceDetails = intendedFrom;
