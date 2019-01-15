@@ -1,0 +1,52 @@
+// This is a CJSON file (JSON with comments)
+{
+    "copyFiles": [
+        // In "development" mode, copy from the full version of the library, in all other modes, use the minified version
+        {
+            "from": {
+                "default": "https://raw.githubusercontent.com/jashkenas/underscore/master/underscore-min.js",
+                "development": "https://raw.githubusercontent.com/jashkenas/underscore/master/underscore.js"
+            },
+            "to": "scripts/underscore.js"
+        },
+
+        // Copy this file only in "pre-production" mode
+        {
+            "from": "https://raw.githubusercontent.com/jashkenas/underscore/master/underscore-min.js.map",
+            "to": {
+                "default": {
+                    "skip": true
+                },
+                "pre-production": "scripts/underscore.js.map"
+            }
+        },
+
+        // Copy this file in "pre-production" and "production" mode only
+        {
+            "from": {
+                "default": {
+                    "skip": true
+                },
+                "pre-production": "node_modules/native-promise-only/npo.js",
+                "production": "node_modules/native-promise-only/npo.js"
+            },
+            "to": "scripts/native-promise-only.js"
+        },
+
+        // Copy this file in all modes except "production" mode
+        {
+            "from": "https://raw.githubusercontent.com/webextensions/console-panel/master/src/console-panel.js",
+            "to": {
+                "default": "scripts/console-panel/console-panel.js",
+                "production": {
+                    "skip": true
+                }
+            }
+        }
+    ],
+    "settings": {
+        "whenFileExists": "notify-about-available-change",
+        "uglifyJs": false,
+        "addReferenceToSourceOfOrigin": false
+    }
+}

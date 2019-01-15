@@ -1,7 +1,7 @@
 {
   "name": "copy-files-from-to",
   "version": "0.2.3",
-  "description": "Copy files from one path to another",
+  "description": "Copy files from one path to another, based on the instructions provided in a configuration file.",
   "main": "index.js",
   "bin": {
     "copy-files-from-to": "./index.js"
@@ -10,9 +10,9 @@
     "test": "test"
   },
   "scripts": {
-    "lint": "./node_modules/.bin/eslint .",
+    "lint": "eslint .",
     "start": "node index.js",
-    "mocha": "./node_modules/.bin/mocha",
+    "mocha": "mocha",
     "test": "npm run lint && npm run mocha"
   },
   "repository": {
@@ -21,12 +21,27 @@
   },
   "keywords": [
     "copy",
+    "file",
     "files",
     "from",
     "one",
     "path",
     "to",
-    "another"
+    "another",
+    "folder",
+    "directory",
+    "create",
+    "instructions",
+    "configuration",
+    "node_modules",
+    "request",
+    "http",
+    "https",
+    "remote",
+    "url",
+    "resource",
+    "source",
+    "code"
   ],
   "author": "Priyank Parashar",
   "license": "MIT",
@@ -35,15 +50,19 @@
   },
   "homepage": "https://github.com/webextensions/copy-files-from-to#readme",
   "dependencies": {
-    "async": "2.6.0",
-    "chalk": "2.4.1",
-    "cp-file": "5.0.0",
-    "request": "2.87.0",
-    "uglify-js": "3.3.25",
-    "mkdirp": "0.5.1"
+    "async": "2.6.1",
+    "chalk": "2.4.2",
+    "cjson": "0.5.0",
+    "cp-file": "6.0.0",
+    "lodash": "4.17.11",
+    "mkdirp": "0.5.1",
+    "note-down": "0.2.1",
+    "request": "2.88.0",
+    "uglify-js": "3.4.9",
+    "yargs": "12.0.5"
   },
   "devDependencies": {
-    "eslint": "4.19.1",
-    "mocha": "5.1.1"
+    "eslint": "5.12.0",
+    "mocha": "5.2.0"
   }
 }

@@ -1,0 +1,10 @@
+{
+  "name": "example",
+  "version": "0.0.0",
+  "description": "Example",
+  "license": "MIT",
+  "repository": "https://github.com/webextensions/copy-files-from-to",
+  "devDependencies": {
+    "native-promise-only": "0.8.1"
+  }
+}

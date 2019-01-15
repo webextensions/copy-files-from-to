@@ -3,310 +3,691 @@
 var path = require('path'),
     fs = require('fs');
 
-var packageJson = require('./package.json');
-
-var chalk = require('chalk'),
-    async = require('async'),
+var async = require('async'),
     request = require('request'),
+    mkdirp = require('mkdirp'),
+    cjson = require('cjson'),
+    _ = require('lodash'),
     UglifyJS = require('uglify-js');
 
-var readListFromFile = null;
+var logger = require('note-down');
+logger.removeOption('showLogLine');
 
-if (!module.parent) {
-    readListFromFile = process.argv[2];
-    if (!readListFromFile) {
-        console.log(chalk.red('\nError: Not enough arguments. Exiting with code 1.\n'));
+var chalk = logger.chalk;
 
-        console.log('Format:   copy-files-from-to <instructions-file> <custom-mode-name>');
-        console.log('Examples: copy-files-from-to test/data/scripts-to-copy.json');
-        console.log('          copy-files-from-to test/data/scripts-to-copy.json prod');
-        console.log('          copy-files-from-to /var/www/rules.json dev');
-        console.log('');
+var argv = require('yargs')
+    .help(false)
+    .version(false)
+    .argv;
 
+var packageJson = require('./package.json');
+
+var nodeVersion = process.versions.node;
+
+var paramHelp = argv.h || argv.help,
+    paramVersion = argv.v || argv.version,
+    paramVerbose = argv.verbose,
+    paramOutdated = argv.outdated,
+    paramWhenFileExists = argv.whenFileExists;
+
+var cwd = process.cwd();
+
+var utils = {
+    isRemoteResource: function (resourcePath) {
+        if (
+            resourcePath.indexOf('https://') === 0 ||
+            resourcePath.indexOf('http://') === 0 ||
+            resourcePath.indexOf('ftp://') === 0
+        ) {
+            return true;
+        }
+        return false;
+    },
+    getRelativePath: function (wrt, fullPath) {
+        if (utils.isRemoteResource(fullPath)) {
+            return fullPath;
+        }
+        return path.relative(wrt, fullPath);
+    },
+
+    exitWithError: function (e, errMsg) {
+        if (errMsg) {
+            logger.log(chalk.magenta(errMsg));
+        }
+        if (e) {
+            logger.error(e);
+        }
         process.exit(1);
-    }
-} else {
-    console.log(chalk.blue('Please run this module (copy-files-from-to) from its binary file.') + chalk.yellow(' Warning: Exiting without error (code 0).'));
-    process.exit(0);
-}
+    },
 
-var exitWithError = function (e, errMsg) {
-    if (errMsg) {
-        console.log(chalk.magenta(errMsg));
-    }
-    if (e) {
-        console.log(chalk.red(e));
-    }
-    process.exit(1);
-};
-
-var sourceFile,
-    sourceFileDirectory;
-
-var pwd = process.cwd();
-
-if (readListFromFile.indexOf('/') === 0 || readListFromFile.indexOf('\\') === 0) {
-    sourceFile = readListFromFile;
-} else {
-    sourceFile = path.resolve(pwd, readListFromFile);
-}
-sourceFileDirectory = path.dirname(sourceFile);
-
-var jsonText;
-try {
-    jsonText = fs.readFileSync(sourceFile, 'utf8');
-
-    console.log(chalk.blue('Reading copy instructions from JSON file ' + sourceFile));
-} catch (e) {
-    exitWithError(e, 'Error in reading file: ' + sourceFile);
-}
-
-var filesToCopy = {},
-    settings = {};
-try {
-    var jsonData = JSON.parse(jsonText);
-    filesToCopy = jsonData.filesToCopy;
-    settings = jsonData.settings;
-} catch (e) {
-    exitWithError(e, 'Invalid JSON data:\n    ' + jsonText.replace(/\n/g, '\n    '));
-}
-
-var mode = process.argv[3];
-
-var errorsCaught = 0;
-
-filesToCopy = filesToCopy.map(function (fileToCopy) {
-    var from = null,
-        uglify = null;
-    if (typeof fileToCopy.from === 'string') {
-        from = fileToCopy.from;
-    } else {
-        var fromMode = fileToCopy.from[mode] || fileToCopy.from['default'] || {};
-        from = fromMode.src;
-        uglify = fromMode.uglify;
-    }
-
-    var to = null;
-    if (typeof fileToCopy.to === 'string') {
-        to = fileToCopy.to;
-    } else {
-        var toMode = fileToCopy.to[mode] || fileToCopy.to['default'] || {};
-        to = toMode.dest;
-    }
-
-    if (typeof from === 'string' && typeof to === 'string') {
-        return {
-            intendedFrom: from,
-            intendedTo: to,
-            latestVersion: fileToCopy.latestVersion,
-            from: (function () {
-                if (from.indexOf('http://') === 0 || from.indexOf('https://') === 0) {
-                    return from;
-                }
-                return path.join(sourceFileDirectory, from);
-            }()),
-            to: path.join(sourceFileDirectory, to),
-            uglify: uglify
-        };
-    } else {
-        errorsCaught++;
-        if (errorsCaught === 1) {   // Show this only once
-            console.log(chalk.red('Something is wrong in the structure of list of files to copy.'));
-        }
-        console.log('');
-        if (typeof from !== 'string') {
-            console.log(chalk.yellow('    Please make sure that the value for "from" is a string OR "from.default.src" exists OR handles the "from.<mode>.src" you expect it to run with.'));
-        }
-        if (typeof to !== 'string') {
-            console.log(chalk.yellow('    Please make sure that the value for "to" is a string OR "to.default.dest" exists OR handles the "to.<mode>.dest" you expect it to run with.'));
-        }
-        console.log(chalk.yellow('    ' + JSON.stringify(fileToCopy, null, '    ').replace(/\n/g, '\n    ')));
-        return null;
-    }
-});
-
-var getRelativePath = function (fullPath) {
-    if (fullPath.indexOf('http://') === 0 || fullPath.indexOf('https://') === 0) {
-        return fullPath;
-    }
-    return path.relative(pwd, fullPath);
-};
-
-var readContents = function (fileToCopy, cb) {
-    var source = fileToCopy.from;
-    if (source.indexOf('http://') === 0 || source.indexOf('https://') === 0) {
-        request(source, function (err, response, body) {
-            if (response.statusCode === 200) {
-                cb(null, body);
-            } else {
-                cb(err);
-            }
-        });
-    } else {
-        var contents = fs.readFileSync(source, 'utf8');
-        cb(null, contents);
-    }
-};
-
-var mkdirp = require('mkdirp');
-var checkFolderExist = function(folderPath) {
-    if (!fs.existsSync(folderPath)) {
-        mkdirp(path.dirname(folderPath), function (error) {
-            console.error("Could not create directory", error);
-        });
-    }
-};
-
-var writeContents = function (fileToCopy, options, cb) {
-    var to = fileToCopy.to,
-        intendedFrom = fileToCopy.intendedFrom;
-    var contents = options.contents,
-        uglified = options.uglified;
-
-    checkFolderExist(to);
-    fs.writeFileSync(to, contents);
-    if (settings.addLinkToSourceOfOrigin) {
-        var sourceDetails = intendedFrom;
-        if (uglified) {
-            sourceDetails += (uglified.uglifyCommand || '');
-        }
-        fs.writeFileSync(to + '.source.txt', sourceDetails);
-    }
-    cb();
-};
-
-var checkForLatestVersion = function (fileToCopy, originalContents, cb) {
-    var latestVersion = fileToCopy.latestVersion;
-    if (latestVersion) {
-        request(latestVersion, function (errLatest, responseLatest, bodyLatest) {
-            if (responseLatest.statusCode === 200) {
-                if (bodyLatest !== originalContents) {
-                    cb(chalk.yellow(' (updates available)'));
-                } else {
-                    cb(chalk.green(' (up to date)'));
-                }
-            } else {
-                cb(chalk.yellow(' (but couldn\'t compare it with latest version)'));
-            }
-        });
-    } else {
-        cb();
-    }
-};
-
-var doUglify = function (needsUglify, code, cb) {
-    if (needsUglify) {
-        var result = UglifyJS.minify(
-            code,
-            // Equivalent to: uglifyjs <source> --compress sequences=false --beautify beautify=false,semicolons=false,comments=some --output <destination>
-            {
-                compress: {
-                    sequences: false
-                },
-                mangle: false,
-                output: {
-                    semicolons: false,
-                    comments: 'some'
-                }
-            }
-        );
-        cb(result.code);
-    } else {
-        cb(code);
-    }
-};
-
-var preWriteOperations = function (fileToCopy, contents, cb) {
-    var needsUglify = fileToCopy.uglify;
-    doUglify(needsUglify, contents, function (processedCode) {
-        if (needsUglify) {
-            cb({
-                contentsAfterPreWriteOperations: processedCode,
-                uglified: {
-                    uglifyCommand:
-                        '\n' +
-                        '\n' +
-                        '$ uglifyjs <source> --compress sequences=false --beautify beautify=false,semicolons=false,comments=some --output <destination>' +
-                        '\n' +
-                        '\nWhere:' +
-                        '\n    uglifyjs = npm install -g uglify-js@' + packageJson.dependencies['uglify-js'] +
-                        '\n    <source> = File ' + fileToCopy.intendedFrom +
-                        '\n    <destination> = File ./' + path.basename(fileToCopy.intendedTo)
-                }
-            });
+    // Returns true/false/<defaultValue>
+    booleanIntention: function (val, defaultValue) {
+        if (val === undefined) {
+            return defaultValue;
         } else {
-            cb({
-                contentsAfterPreWriteOperations: processedCode
-            });
+            return !!val;
         }
-    });
-};
+    },
 
-var postWriteOperations = function (fileToCopy, originalContents, contentsAfterPreWriteOperations, cb) {
-    checkForLatestVersion(fileToCopy, originalContents, function (status) {
-        cb(status);
-    });
-};
+    ensureDirectoryExistence: function(dirPath) {
+        var dirname = path.dirname(dirPath);
+        if (!fs.existsSync(dirPath)) {
+            try {
+                mkdirp.sync(dirname);
+            } catch (e) {
+                logger.error('\n' + chalk.bold.underline('Error:'));
+                logger.error('Unable to create directory ' + dirname);
 
-function copyFile (fileToCopy, cb) {
-    var from = fileToCopy.from,
-        to = fileToCopy.to;
+                logger.error('\n' + chalk.bold.underline('Error details:'));
+                logger.error(e);
 
-    var strFromTo = chalk.gray(getRelativePath(from)) + ' to ' + chalk.gray(getRelativePath(to));
-    var successMessage = chalk.green(' ✓') + ' Copied ' + strFromTo,
-        errorMessage = chalk.red(' ✗') + ' Failed to copy ' + strFromTo;
-
-    readContents(fileToCopy, function (err, originalContents) {
-        if (err) {
-            errorsCaught++;
-            console.log(errorMessage);
-            return;
+                process.exit(1);
+            }
         }
+    },
 
-        preWriteOperations(fileToCopy, originalContents, function (options) {
-            var contentsAfterPreWriteOperations = options.contentsAfterPreWriteOperations,
-                uglified = options.uglified;
-            writeContents(
-                fileToCopy,
+    doUglify: function (needsUglify, code, cb) {
+        if (needsUglify) {
+            var result = UglifyJS.minify(
+                code,
+                // Equivalent to: uglifyjs <source> --compress sequences=false --beautify beautify=false,semicolons=false,comments=some --output <destination>
                 {
-                    contents: contentsAfterPreWriteOperations,
-                    uglified: uglified
-                },
-                function () {
-                    postWriteOperations(fileToCopy, originalContents, contentsAfterPreWriteOperations, function (appendToSuccessMessage) {
-                        console.log(successMessage + (appendToSuccessMessage || ''));
-                        cb();
-                    });
+                    compress: {
+                        sequences: false
+                    },
+                    mangle: false,
+                    output: {
+                        semicolons: false,
+                        comments: 'some'
+                    }
                 }
             );
-        });
-    });
-}
-
-var done = function () {
-    if (errorsCaught) {
-        if (errorsCaught === 1) {
-            console.log(chalk.red('\nCaught ' + errorsCaught + ' error. Please check.'));
+            var consoleCommand = 'uglifyjs <source> --compress sequences=false --beautify beautify=false,semicolons=false,comments=some --output <destination>';
+            cb(result.code, consoleCommand);
         } else {
-            console.log(chalk.red('\nCaught ' + errorsCaught + ' errors. Please check.'));
+            cb(code, null);
         }
-        process.exit(1);
+    },
+
+    readContents: function (sourceFullPath, cb) {
+        if (utils.isRemoteResource(sourceFullPath)) {
+            request(
+                {
+                    uri: sourceFullPath,
+                    gzip: true,
+                    timeout: 30000
+                },
+                function (err, response, body) {
+                    if (err) {
+                        cb(err);
+                    } else {
+                        if (response.statusCode === 200) {
+                            cb(null, body);
+                        } else {
+                            cb('Unexpected statusCode (' + response.statusCode + ') for response of: ' + sourceFullPath);
+                        }
+                    }
+                }
+            );
+        } else {
+            try {
+                var contents = fs.readFileSync(sourceFullPath, 'utf8');
+                cb(null, contents);
+            } catch (e) {
+                cb(e);
+            }
+        }
     }
 };
 
-if (filesToCopy.length) {
-    console.log(chalk.blue('\nStarting copy operation in "' + (mode || 'default') + '" mode:') + chalk.yellow(' (overwrite option is on)'));
-
-    async.eachLimit(
-        filesToCopy,
-        8,
-        function (fileToCopy, callback) {
-            copyFile(fileToCopy, function () {
-                callback();
-            });
-        },
-        done
-    );
+if (module.parent) {
+    // Just show a warning and do not exit the process since a basic mocha test checks for the sanity of the code of this file
+    logger.warn('\nWarning: Please run this module (' + packageJson.name + ') from its binary file.' + '\n');
 } else {
-    console.log(chalk.yellow('No instructions provided for copy operation.'));
+    var showHelp = function () {
+        logger.log([
+            '',
+            chalk.bold('Usage:'),
+            '  copy-files-from-to [--config <config-file>] [--mode <mode-name>] [...]',
+            '',
+            chalk.bold('Examples:'),
+            '  copy-files-from-to',
+            '  copy-files-from-to --config copy-files-from-to.json',
+            '  copy-files-from-to --mode production',
+            '  copy-files-from-to -h',
+            '  copy-files-from-to --version',
+            '',
+            chalk.bold('Options:'),
+            '     --config <config-file-path>     Path to configuration file',
+            '                                     When unspecified, it looks for copy-files-from-to.cjson / copy-files-from-to.json',
+            '     --mode <mode-name>              Mode to use for copying the files',
+            '                                     When unspecified, it uses "default" mode',
+            '     --when-file-exists <operation>  Override "whenFileExists" setting specified in configuration file',
+            '                                     <operation> can be "notify-about-available-change" or "overwrite" or "do-nothing" (default)',
+            '     --outdated                      Notify about outdated parts of the configuration file',
+            '                                     (takes cue from "latest" property, wherever specified)',
+            '     --verbose                       Verbose logging',
+            '  -v --version                       Output the version number',
+            '  -h --help                          Show help',
+            ''
+        ].join('\n'));
+    };
+
+    if (paramHelp) {
+        showHelp();
+        process.exit(0);
+    }
+
+    if (paramVersion || paramVerbose) {
+        logger.log(packageJson.name + ' version: ' + packageJson.version);
+        logger.log('Node JS version: ' + nodeVersion);
+        if (paramVersion) {
+            process.exit(0);
+        }
+    }
+
+    var configFile = null;
+
+    configFile = argv.config;
+    if (!configFile) {
+        if (fs.existsSync(path.resolve(cwd, 'copy-files-from-to.cjson'))) {
+            configFile = 'copy-files-from-to.cjson';
+        } else if (fs.existsSync(path.resolve(cwd, 'copy-files-from-to.json'))) {
+            configFile = 'copy-files-from-to.json';
+        } else {
+            logger.error(
+                '\n' +
+                chalk.bold('Error:') + ' Please ensure that you have passed correct arguments. Exiting with error (code 1).'
+            );
+            showHelp();
+            process.exit(1);
+        }
+    }
+
+    var configFileSource,
+        configFileSourceDirectory;
+
+    if (configFile.indexOf('/') === 0 || configFile.indexOf('\\') === 0) { // readListFromFile has an absolute path
+        configFileSource = configFile;
+    } else { // readListFromFile has a relative path
+        configFileSource = path.resolve(cwd, configFile);
+    }
+    configFileSourceDirectory = path.dirname(configFileSource);
+
+    var cjsonText;
+    try {
+        logger.info('Reading copy instructions from file ' + utils.getRelativePath(cwd, configFileSource));
+        cjsonText = fs.readFileSync(configFileSource, 'utf8');
+    } catch (e) {
+        utils.exitWithError(e, 'Error in reading file: ' + configFileSource);
+    }
+
+    var copyFiles = [],
+        settings = {};
+    try {
+        var cjsonData = cjson.parse(cjsonText);
+        if (cjsonData instanceof Object) {
+            if (Array.isArray(cjsonData.copyFiles)) {
+                copyFiles = cjsonData.copyFiles;
+            }
+            if (cjsonData.settings instanceof Object) {
+                settings = cjsonData.settings;
+            }
+        }
+    } catch (e) {
+        utils.exitWithError(e, 'Invalid (C)JSON data:\n    ' + cjsonText.replace(/\n/g, '\n    '));
+    }
+
+    // ".only" is useful for debugging (This feature is not mentioned in documentation)
+    copyFiles = (function (copyFiles) {
+        var copyFilesWithOnly = [];
+
+        copyFiles.forEach(function (copyFile) {
+            if (copyFile.only) {
+                copyFilesWithOnly.push(copyFile);
+            }
+        });
+
+        if (copyFilesWithOnly.length) {
+            return copyFilesWithOnly;
+        } else {
+            return copyFiles;
+        }
+    }(copyFiles));
+
+    if (paramOutdated) {
+        var arrFromAndLatest = [];
+
+        for (var i = 0; i < copyFiles.length; i++) {
+            let copyFile = copyFiles[i];
+            let from = copyFile.from;
+            if (from && typeof from === 'object') {
+                let modes = Object.keys(from);
+                for (let i = 0; i < modes.length; i++) {
+                    let mode = modes[i],
+                        fromMode = from[mode];
+                    if (fromMode.src && fromMode.latest) {
+                        var ob = {
+                            src: fromMode.src,
+                            latest: fromMode.latest
+                        };
+                        arrFromAndLatest.push(ob);
+                    }
+                }
+            }
+        }
+
+        if (paramVerbose) {
+            logger.verbose('Need to check for updates for the following entries:');
+            logger.verbose(JSON.stringify(arrFromAndLatest, null, '    '));
+        }
+
+        var compareSrcAndLatest = function (arrSrcAndLatest) {
+            async.eachLimit(
+                arrSrcAndLatest,
+                8,
+                function (srcAndLatest, callback) {
+                    var resourceSrc = srcAndLatest.src,
+                        resourceSrcContents = null;
+                    var resourceLatest = srcAndLatest.latest,
+                        resourceLatestContents = null;
+
+                    async.parallel(
+                        [
+                            function (cb) {
+                                utils.readContents(resourceSrc, function (err, contents) {
+                                    if (err) {
+                                        logger.error(' ✗ Could not read: ' + resourceSrc);
+                                    } else {
+                                        resourceSrcContents = contents;
+                                    }
+                                    cb();
+                                });
+                            },
+                            function (cb) {
+                                utils.readContents(resourceLatest, function (err, contents) {
+                                    if (err) {
+                                        logger.error(' ✗ (Could not read) ' + chalk.gray(resourceLatest));
+                                    } else {
+                                        resourceLatestContents = contents;
+                                    }
+                                    cb();
+                                });
+                            }
+                        ],
+                        function () {
+                            if (resourceSrcContents !== null && resourceLatestContents !== null) {
+                                if (resourceSrcContents === resourceLatestContents) {
+                                    logger.success(' ✓' + chalk.gray(' (Up to date) ' + resourceSrc));
+                                } else {
+                                    logger.warn(' 🔃 ("src" is outdated w.r.t. "latest") ' + chalk.gray(resourceSrc));
+                                }
+                            }
+                            callback();
+                        }
+                    );
+                }
+            );
+        };
+
+        if (arrFromAndLatest.length) {
+            compareSrcAndLatest(arrFromAndLatest);
+        } else {
+            logger.warn('There are no "from" entries for which "from.<mode>.src" file needs to be compared with "from.<mode>.latest" file.');
+        }
+    } else {
+        var WHEN_FILE_EXISTS_NOTIFY_ABOUT_AVAILABLE_CHANGE = 'notify-about-available-change',
+            WHEN_FILE_EXISTS_OVERWRITE = 'overwrite',
+            WHEN_FILE_EXISTS_DO_NOTHING = 'do-nothing',
+            ARR_WHEN_FILE_EXISTS = [
+                WHEN_FILE_EXISTS_NOTIFY_ABOUT_AVAILABLE_CHANGE,
+                WHEN_FILE_EXISTS_OVERWRITE,
+                WHEN_FILE_EXISTS_DO_NOTHING
+            ];
+        var whenFileExists = paramWhenFileExists;
+        if (ARR_WHEN_FILE_EXISTS.indexOf(whenFileExists) === -1) {
+            whenFileExists = settings.whenFileExists;
+            if (ARR_WHEN_FILE_EXISTS.indexOf(whenFileExists) === -1) {
+                whenFileExists = WHEN_FILE_EXISTS_DO_NOTHING;
+            }
+        }
+        var overwriteIfFileAlreadyExists = (whenFileExists === WHEN_FILE_EXISTS_OVERWRITE),
+            notifyAboutAvailableChange = (whenFileExists === WHEN_FILE_EXISTS_NOTIFY_ABOUT_AVAILABLE_CHANGE);
+
+        var mode = argv.mode || 'default';
+
+        var warningsEncountered = 0;
+
+        copyFiles = copyFiles.map(function normalizeData(copyFile) {
+            var latest = null;
+            var from = null,
+                skipFrom = null;
+            if (typeof copyFile.from === 'string') {
+                from = copyFile.from;
+            } else {
+                var fromMode = copyFile.from[mode] || copyFile.from['default'] || {};
+                if (typeof fromMode === 'string') {
+                    from = fromMode;
+                } else {
+                    from = fromMode.src;
+                    skipFrom = !!fromMode.skip;
+                    latest = fromMode.latest;
+                }
+            }
+
+            var to = null,
+                skipTo = null,
+                uglify = null;
+            if (typeof copyFile.to === 'string') {
+                to = copyFile.to;
+            } else {
+                var toMode = copyFile.to[mode] || copyFile.to['default'] || {};
+                if (typeof toMode === 'string') {
+                    to = toMode;
+                } else {
+                    to = toMode.dest;
+                    skipTo = !!toMode.skip;
+                }
+
+                if (typeof toMode === 'object' && toMode.uglifyJs !== undefined) {
+                    uglify = utils.booleanIntention(toMode.uglifyJs, false);
+                } else {
+                    uglify = utils.booleanIntention(settings.uglifyJs, false);
+                }
+            }
+
+            if (typeof from === 'string' && typeof to === 'string') {
+                if (from.match(/\.js$/) || to.match(/\.js$/)) {
+                    // If "from" or "to" path ends with ".js", that indicates that it is a JS file
+                    // So, retain the uglify setting.
+                    // It is a "do nothing" block
+                } else {
+                    // It does not seem to be a JS file. So, don't uglify it.
+                    uglify = false;
+                }
+
+                return {
+                    intendedFrom: from,
+                    intendedTo: to,
+                    latest: latest,
+                    from: (function () {
+                        if (utils.isRemoteResource(from)) {
+                            return from;
+                        }
+                        return path.join(configFileSourceDirectory, from);
+                    }()),
+                    to: path.join(configFileSourceDirectory, to),
+                    uglify: uglify
+                };
+            } else {
+                if (
+                    (typeof from !== 'string' && !skipFrom) ||
+                    (typeof to !== 'string' && !skipTo)
+                ) {
+                    warningsEncountered++;
+                    if (warningsEncountered === 1) {   // Show this only once
+                        logger.log('');
+                        logger.warn('Some entries will not be considered in the current mode (' + mode + ').');
+                    }
+
+                    logger.log('');
+
+                    var applicableModesForSkip = _.uniq(['"default"', '"' + mode + '"']).join(' / ');
+                    if (typeof from !== 'string' && !skipFrom) {
+                        var fromValuesToCheck = _.uniq([
+                            '"from"',
+                            '"from.default"',
+                            '"from.default.src"',
+                            '"from.' + mode + '"',
+                            '"from.' + mode + '.src"'
+                        ]).join(' / ');
+                        logger.warn('    Please ensure that the value for ' + fromValuesToCheck + ' is a string.');
+                        logger.warn('    Otherwise, add ' + chalk.blue('"skip": true') + ' under "from" for mode: ' + applicableModesForSkip);
+                    }
+                    if (typeof to !== 'string' && !skipTo) {
+                        var toValuesToCheck = _.uniq([
+                            '"to"',
+                            '"to.default"',
+                            '"to.default.dest"',
+                            '"to.' + mode + '"',
+                            '"to.' + mode + '.dest"'
+                        ]).join(' / ');
+                        logger.warn('    Please ensure that the value for ' + toValuesToCheck + ' is a string.');
+                        logger.warn('    Otherwise, add ' + chalk.blue('"skip": true') + ' under "to" for mode: ' + applicableModesForSkip);
+                    }
+
+                    logger.warn('    ' + JSON.stringify(copyFile, null, '    ').replace(/\n/g, '\n    '));
+                }
+            }
+        });
+
+        var writeContents = function (copyFile, options, cb) {
+            var to = copyFile.to,
+                intendedFrom = copyFile.intendedFrom;
+            var contents = options.contents,
+                uglified = options.uglified,
+                overwriteIfFileAlreadyExists = options.overwriteIfFileAlreadyExists;
+
+            utils.ensureDirectoryExistence(to);
+
+            var fileExists = fs.existsSync(to),
+                fileDoesNotExist = !fileExists;
+
+            var avoidedFileOverwrite;
+            if (
+                fileDoesNotExist ||
+                (fileExists && overwriteIfFileAlreadyExists)
+            ) {
+                try {
+                    fs.writeFileSync(to, contents);
+                } catch (e) {
+                    cb(e);
+                    return;
+                }
+                if (settings.addReferenceToSourceOfOrigin) {
+                    var sourceDetails = intendedFrom;
+                    if (uglified) {
+                        sourceDetails += (uglified.uglifyCommand || '');
+                    }
+
+                    /*
+                    TODO: Handle error scenario for this ".writeFileSync()" operation.
+                          Not handling it yet because for all practical use-cases, if
+                          the code has been able to write the "to" file, then it should
+                          be able to write the "<to>.source.txt" file
+                    */
+                    fs.writeFileSync(to + '.source.txt', sourceDetails);
+                }
+                avoidedFileOverwrite = false;
+            } else {
+                avoidedFileOverwrite = true;
+            }
+            cb(null, avoidedFileOverwrite);
+        };
+
+        var checkForAvailableChange = function (copyFile, contentsOfFrom, config, cb) {
+            var notifyAboutAvailableChange = config.notifyAboutAvailableChange;
+
+            if (notifyAboutAvailableChange) {
+                var to = copyFile.to;
+                utils.readContents(to, function (err, contentsOfTo) {
+                    if (err) {
+                        cb(chalk.red(' (unable to read "to.<mode>.dest" file at path ' + to + ')'));
+                        warningsEncountered++;
+                    } else {
+                        var needsUglify = copyFile.uglify;
+
+                        utils.doUglify(needsUglify, contentsOfFrom, function (processedCode) {
+                            if (processedCode === contentsOfTo) {
+                                cb(chalk.gray(' (up to date)'));
+                            } else {
+                                cb(chalk.yellow(' (update is available)'));
+                            }
+                        });
+                    }
+                });
+            } else {
+                cb();
+            }
+        };
+
+        var preWriteOperations = function (copyFile, contents, cb) {
+            var needsUglify = copyFile.uglify;
+            utils.doUglify(needsUglify, contents, function (processedCode, consoleCommand) {
+                if (needsUglify) {
+                    cb({
+                        contentsAfterPreWriteOperations: processedCode,
+                        uglified: {
+                            uglifyCommand:
+                                '\n' +
+                                '\n' +
+                                '$ ' + consoleCommand +
+                                '\n' +
+                                '\nWhere:' +
+                                '\n    uglifyjs = npm install -g uglify-js@' + packageJson.dependencies['uglify-js'] +
+                                '\n    <source> = File ' + copyFile.intendedFrom +
+                                '\n    <destination> = File ./' + path.basename(copyFile.intendedTo)
+                        }
+                    });
+                } else {
+                    cb({
+                        contentsAfterPreWriteOperations: processedCode
+                    });
+                }
+            });
+        };
+
+        var postWriteOperations = function (copyFile, originalContents, contentsAfterPreWriteOperations, config, cb) {
+            checkForAvailableChange(copyFile, originalContents, config, function (status) {
+                cb(status);
+            });
+        };
+
+        var doCopyFile = function (copyFile, cb) {
+            var from = copyFile.from,
+                to = copyFile.to;
+
+            var printFrom = ' ' + chalk.gray(utils.getRelativePath(cwd, from)),
+                printTo = ' ' + chalk.gray(utils.getRelativePath(cwd, to)),
+                printFromTo = printFrom + ' to' + printTo;
+            var successMessage = ' ' + chalk.green('✓') + ' Copied',
+                successMessageAvoidedFileOverwrite = ' ' + chalk.green('✓') + chalk.gray(' Already exists'),
+                errorMessageCouldNotReadFromSrc = ' ' + chalk.red('✗') + ' Could not read',
+                errorMessageFailedToCopy = ' ' + chalk.red('✗') + ' Failed to copy';
+
+            var destFileExists = fs.existsSync(to),
+                destFileDoesNotExist = !destFileExists;
+            if (
+                destFileDoesNotExist ||
+                (
+                    destFileExists &&
+                    (
+                        overwriteIfFileAlreadyExists ||
+                        notifyAboutAvailableChange
+                    )
+                )
+            ) {
+                utils.readContents(copyFile.from, function (err, contentsOfFrom) {
+                    if (err) {
+                        warningsEncountered++;
+                        if (destFileExists && notifyAboutAvailableChange) {
+                            logger.log(errorMessageCouldNotReadFromSrc + printFrom);
+                        } else {
+                            logger.log(errorMessageFailedToCopy + printFromTo);
+                        }
+                        cb();
+                        return;
+                    }
+
+                    preWriteOperations(copyFile, contentsOfFrom, function (options) {
+                        var contentsAfterPreWriteOperations = options.contentsAfterPreWriteOperations,
+                            uglified = options.uglified;
+                        writeContents(
+                            copyFile,
+                            {
+                                contents: contentsAfterPreWriteOperations,
+                                uglified: uglified,
+                                overwriteIfFileAlreadyExists: overwriteIfFileAlreadyExists
+                            },
+                            function (err, avoidedFileOverwrite) {
+                                if (err) {
+                                    warningsEncountered++;
+                                    logger.log(errorMessageFailedToCopy + printFromTo);
+                                    cb();
+                                    return;
+                                } else {
+                                    postWriteOperations(
+                                        copyFile,
+                                        contentsOfFrom,
+                                        contentsAfterPreWriteOperations,
+                                        {
+                                            notifyAboutAvailableChange: notifyAboutAvailableChange
+                                        },
+                                        function (appendToSuccessMessage) {
+                                            if (avoidedFileOverwrite) {
+                                                logger.log(successMessageAvoidedFileOverwrite + (appendToSuccessMessage || '') + printTo);
+                                            } else {
+                                                // Copying value of "destFileDoesNotExist" to "destFileDidNotExist" since that has a better
+                                                // sematic name for the given context
+                                                let destFileDidNotExist = destFileDoesNotExist;
+                                                if (destFileDidNotExist) {
+                                                    logger.log(successMessage + printFromTo);
+                                                } else {
+                                                    logger.log(successMessage + (appendToSuccessMessage || '') + printFromTo);
+                                                }
+                                            }
+                                            cb();
+                                        }
+                                    );
+                                }
+                            }
+                        );
+                    });
+                });
+            } else {
+                logger.log(successMessageAvoidedFileOverwrite + printTo);
+                cb();
+            }
+        };
+
+        var done = function (warningsEncountered) {
+            if (warningsEncountered) {
+                if (warningsEncountered === 1) {
+                    logger.warn('\nEncountered ' + warningsEncountered + ' warning. Please check.');
+                } else {
+                    logger.warn('\nEncountered ' + warningsEncountered + ' warnings. Please check.');
+                }
+                logger.error('Error: Please resolve the above mentioned warnings. Exiting with code 1.');
+                process.exit(1);
+            }
+        };
+
+        if (copyFiles.length) {
+            logger.log(
+                chalk.blue('\nStarting copy operation in "' + (mode || 'default') + '" mode:') +
+                (overwriteIfFileAlreadyExists ? chalk.yellow(' (overwrite option is on)') : '')
+            );
+
+            async.eachLimit(
+                copyFiles,
+                8,
+                function (copyFile, callback) {
+                    // "copyFile" would be "undefined" when copy operation is not applicable
+                    // in current "mode" for the given file
+                    if (copyFile && typeof copyFile === 'object') {
+                        doCopyFile(copyFile, function () {
+                            callback();
+                        });
+                    } else {
+                        callback();
+                    }
+                },
+                function () {
+                    done(warningsEncountered);
+                }
+            );
+        } else {
+            logger.warn('No instructions applicable for copy operation.');
+        }
+    }
 }

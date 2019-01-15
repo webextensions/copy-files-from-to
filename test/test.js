@@ -5,7 +5,7 @@ var copyFilesFromTo = require('../index.js');       // eslint-disable-line no-un
 describe('package', function() {
     describe('copy-files-from-to', function() {
         // If there would be an error in require, the code would not reach this point
-        it('should load fine using require', function(done) {
+        it('should load fine when using require', function(done) {
             done();
         });
     });

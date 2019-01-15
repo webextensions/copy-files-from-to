@@ -1,11 +1,15 @@
-#### TODO
-* Make it work with environments other than Linux (absolute path check in current version would not work on Windows)
-* Make overwrite configurable / show warning on overwrite
-* Add a safety check that if the operation attempts to modify a file outside the current PWD, then a specific parameter should be passed
-* Add support for downloading files from GitHub
-* Add support for downloading files from any http/https path (may ask for an extra parameter to be passed for safety reasons)
-* Make async version as well
-* Consider adding a default json configuration file like bower.json, say copy-files.json
-* Consider supporting basic bower.json
-* Add options for logging, like: --verbose, --silent etc.
+# TODO
+
+* Refactor code
+* If the operation attempts to modify a file outside the `process.cwd()`/config-file-directory, then `--unsafe` parameter must be passed
+* Consider adding support for npm modules via https://unpkg.com/
+* Consider adding option to use soft links, rather than copying the files
+* Check if any speed improvements (probably via changes in parallelisation) can be done
+* Add `--clean` option (to "Delete the files mentioned in `"to"` entries (for all modes)")
+  * Also add an option to "clean empty directories"
+* Add support for loading `.js` files as configuration
+* Add more logging when running with `--verbose` option
+* Add `--silent` option
+* Consider adding support to auto convert GitHub links to raw content links
+* Consider adding support for `bower.json`
 * Write test-cases
