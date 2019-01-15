@@ -163,7 +163,7 @@ if (module.parent) {
             '     --mode <mode-name>              Mode to use for copying the files',
             '                                     When unspecified, it uses "default" mode',
             '     --when-file-exists <operation>  Override "whenFileExists" setting specified in configuration file',
-            '                                     <operation> can be "notify-about-available-change" or "overwrite" or "do-nothing" (default)',
+            '                                     <operation> can be "notify-about-available-change" or "overwrite" or "do-nothing"',
             '     --outdated                      Notify about outdated parts of the configuration file',
             '                                     (takes cue from "latest" property, wherever specified)',
             '     --verbose                       Verbose logging',
