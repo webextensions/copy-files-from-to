@@ -99,6 +99,12 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
                     "skip": true
                 }
             }
+        },
+
+        // Copy the files matching the "glob" pattern
+        {
+            "from": "assets/**/*.jpg",
+            "to": "public/images/"
         }
     ],
     "settings": {

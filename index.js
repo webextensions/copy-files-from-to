@@ -8,6 +8,9 @@ var async = require('async'),
     mkdirp = require('mkdirp'),
     cjson = require('cjson'),
     _ = require('lodash'),
+    fastGlob = require('fast-glob'),
+    globParent = require('glob-parent'),
+    isGlob = require('is-glob'),
     UglifyJS = require('uglify-js');
 
 var logger = require('note-down');
@@ -23,7 +26,6 @@ var argv = require('yargs')
 var packageJson = require('./package.json');
 
 var nodeVersion = process.versions.node;
-
 var paramHelp = argv.h || argv.help,
     paramVersion = argv.v || argv.version,
     paramVerbose = argv.verbose,
@@ -396,6 +398,14 @@ if (module.parent) {
                 }
             }
 
+            if (isGlob(to)) {
+                warningsEncountered++;
+                logger.log('');
+                logger.warn('The "to" entries should not be a "glob" pattern. ' + chalk.blue('(Reference: https://github.com/isaacs/node-glob#glob-primer)'));
+
+                to = null;
+            }
+
             if (typeof from === 'string' && typeof to === 'string') {
                 if (from.match(/\.js$/) || to.match(/\.js$/)) {
                     // If "from" or "to" path ends with ".js", that indicates that it is a JS file
@@ -460,6 +470,35 @@ if (module.parent) {
                 }
             }
         });
+
+        copyFiles = (function () {
+            var arr = [];
+            copyFiles.forEach(function (copyFile) {
+                if (copyFile) {
+                    if (isGlob(copyFile.from)) {
+                        var entries = fastGlob.sync([copyFile.from]);
+                        entries.forEach(function (entry) {
+                            var ob = JSON.parse(JSON.stringify(copyFile));
+                            ob.from = entry;
+                            ob.to = path.join(
+                                ob.to,
+                                path.relative(
+                                    path.join(
+                                        configFileSourceDirectory,
+                                        globParent(ob.intendedFrom)
+                                    ),
+                                    ob.from
+                                )
+                            );
+                            arr.push(ob);
+                        });
+                    } else {
+                        arr.push(copyFile);
+                    }
+                }
+            });
+            return arr;
+        }());
 
         var writeContents = function (copyFile, options, cb) {
             var to = copyFile.to,

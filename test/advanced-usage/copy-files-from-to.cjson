@@ -42,6 +42,12 @@
                     "skip": true
                 }
             }
+        },
+
+        // Copy the files matching the "glob" pattern
+        {
+            "from": "assets/**/*.jpg",
+            "to": "public/images/"
         }
     ],
     "settings": {
