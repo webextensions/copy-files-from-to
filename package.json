@@ -50,19 +50,19 @@
   },
   "homepage": "https://github.com/webextensions/copy-files-from-to#readme",
   "dependencies": {
-    "async": "2.6.1",
+    "async": "2.6.2",
     "chalk": "2.4.2",
     "cjson": "0.5.0",
-    "cp-file": "6.0.0",
+    "cp-file": "6.1.0",
     "lodash": "4.17.11",
     "mkdirp": "0.5.1",
     "note-down": "0.2.1",
     "request": "2.88.0",
     "uglify-js": "3.4.9",
-    "yargs": "12.0.5"
+    "yargs": "13.2.1"
   },
   "devDependencies": {
-    "eslint": "5.12.0",
-    "mocha": "5.2.0"
+    "eslint": "5.15.1",
+    "mocha": "6.0.2"
   }
 }
