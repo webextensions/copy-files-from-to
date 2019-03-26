@@ -306,7 +306,7 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
             //     instead of the default "utf8"
             //     Data type: string
             //     Default value: "otf,woff,woff2,ttf,eot,png,jpg,gif"
-            "binaryExtensions": "otf,woff,woff2,ttf,eot,png,jpg,gif",
+            "binaryExtensions": "otf,woff,woff2,ttf,eot,png,jpg,gif"
         }
     }
     ```

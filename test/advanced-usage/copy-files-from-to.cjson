@@ -53,6 +53,7 @@
     "settings": {
         "whenFileExists": "notify-about-available-change",
         "uglifyJs": false,
-        "addReferenceToSourceOfOrigin": false
-    }
+        "addReferenceToSourceOfOrigin": false,
+        "binaryExtensions": "otf,woff,woff2,ttf,eot,png,jpg,gif"
+      }
 }
