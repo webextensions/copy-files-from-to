@@ -12,7 +12,8 @@ var async = require('async'),
     globParent = require('glob-parent'),
     isGlob = require('is-glob'),
     UglifyJS = require('uglify-js'),
-    md5 = require('md5');
+    md5 = require('md5'),
+    isUtf8 = require('is-utf8');
 
 var logger = require('note-down');
 logger.removeOption('showLogLine');
@@ -35,18 +36,12 @@ var paramHelp = argv.h || argv.help,
 
 var cwd = process.cwd();
 
-var baseBinaryTypes = 'otf,woff,woff2,ttf,eot,png,jpg,gif';
-
 var utils = {
 
-    getEncoding: function(resourcePath, testPattern) {
-        return testPattern.test(resourcePath) ? 'binary' : 'utf8';
+    getEncoding: function(contents) {
+        return isUtf8(contents) ? 'utf8' : 'binary';
     },
-    getColoredTypeString: function(resourcePath, providedEncoding) {
-        var encoding = utils.isRemoteResource(resourcePath)
-            ? 'remote'
-            : providedEncoding;
-
+    getColoredTypeString: function(encoding) {
         switch (encoding) {
         case 'remote': return chalk.cyan('remote');
         case 'binary': return chalk.yellow('binary');
@@ -130,7 +125,7 @@ var utils = {
         }
     },
 
-    readContents: function (sourceFullPath, encoding, cb) {
+    readContents: function (sourceFullPath, cb) {
         if (utils.isRemoteResource(sourceFullPath)) {
             request(
                 {
@@ -143,7 +138,7 @@ var utils = {
                         cb(err);
                     } else {
                         if (response.statusCode === 200) {
-                            cb(null, body);
+                            cb(null, body, 'remote');
                         } else {
                             cb('Unexpected statusCode (' + response.statusCode + ') for response of: ' + sourceFullPath);
                         }
@@ -152,9 +147,12 @@ var utils = {
             );
         } else {
             try {
-                var readEncoding = encoding === 'binary' ? null : encoding;
-                var contents = fs.readFileSync(sourceFullPath, readEncoding);
-                cb(null, contents);
+                var rawContents = fs.readFileSync(sourceFullPath);
+                var encoding = utils.getEncoding(rawContents);
+                var contents = encoding === 'binary'
+                    ? rawContents
+                    : rawContents.toString('utf8');
+                cb(null, contents, encoding);
             } catch (e) {
                 cb(e);
             }
@@ -256,9 +254,6 @@ if (module.parent) {
                 settings = cjsonData.settings;
             }
         }
-        var binaryExtensions = settings.binaryExtensions || baseBinaryTypes;
-        var extRegExp = '\\.('+binaryExtensions.split(',').join('|')+')$';
-        settings.binaryExtensionsTestPattern = new RegExp(extRegExp);
     } catch (e) {
         utils.exitWithError(e, 'Invalid (C)JSON data:\n    ' + cjsonText.replace(/\n/g, '\n    '));
     }
@@ -271,7 +266,6 @@ if (module.parent) {
             if (copyFile.only) {
                 copyFilesWithOnly.push(copyFile);
             }
-            copyFile.encoding = utils.getEncoding(copyFile.from, settings.binaryExtensionsTestPattern);
         });
 
         if (copyFilesWithOnly.length) {
@@ -321,21 +315,27 @@ if (module.parent) {
                     async.parallel(
                         [
                             function (cb) {
-                                utils.readContents(resourceSrc, utils.getEncoding(resourceSrc, settings.binaryExtensionsTestPattern), function (err, contents) {
+                                utils.readContents(resourceSrc, function (err, contents, encoding) {
                                     if (err) {
                                         logger.error(' ✗ Could not read: ' + resourceSrc);
                                     } else {
-                                        resourceSrcContents = contents;
+                                        if (encoding === 'binary')
+                                            resourceSrcContents = md5(contents);
+                                        else
+                                            resourceSrcContents = contents;
                                     }
                                     cb();
                                 });
                             },
                             function (cb) {
-                                utils.readContents(resourceLatest, utils.getEncoding(resourceLatest, settings.binaryExtensionsTestPattern), function (err, contents) {
+                                utils.readContents(resourceLatest, function (err, contents, encoding) {
                                     if (err) {
                                         logger.error(' ✗ (Could not read) ' + chalk.gray(resourceLatest));
                                     } else {
-                                        resourceLatestContents = contents;
+                                        if (encoding === 'binary')
+                                            resourceLatestContents = md5(contents);
+                                        else
+                                            resourceLatestContents = contents;
                                     }
                                     cb();
                                 });
@@ -403,8 +403,7 @@ if (module.parent) {
 
             var to = null,
                 skipTo = null,
-                uglify = null,
-                encoding = copyFile.encoding;
+                uglify = null;
             if (typeof copyFile.to === 'string') {
                 to = copyFile.to;
             } else {
@@ -452,7 +451,6 @@ if (module.parent) {
                         return path.join(configFileSourceDirectory, from);
                     }()),
                     to: path.join(configFileSourceDirectory, to),
-                    encoding: encoding,
                     uglify: uglify
                 };
             } else {
@@ -506,7 +504,6 @@ if (module.parent) {
                         entries.forEach(function (entry) {
                             var ob = JSON.parse(JSON.stringify(copyFile));
                             ob.from = entry;
-                            ob.encoding = utils.getEncoding(entry, settings.binaryExtensionsTestPattern);
                             ob.to = path.join(
                                 ob.to,
                                 path.relative(
@@ -545,7 +542,7 @@ if (module.parent) {
                 (fileExists && overwriteIfFileAlreadyExists)
             ) {
                 try {
-                    fs.writeFileSync(to, contents);
+                    fs.writeFileSync(to, contents, copyFile.encoding === 'binary' ? null : 'utf8');
                 } catch (e) {
                     cb(e);
                     return;
@@ -562,7 +559,7 @@ if (module.parent) {
                           the code has been able to write the "to" file, then it should
                           be able to write the "<to>.source.txt" file
                     */
-                    fs.writeFileSync(to + '.source.txt', sourceDetails);
+                    fs.writeFileSync(to + '.source.txt', sourceDetails, 'utf8');
                 }
                 avoidedFileOverwrite = false;
             } else {
@@ -575,13 +572,13 @@ if (module.parent) {
             var notifyAboutAvailableChange = config.notifyAboutAvailableChange;
 
             if (notifyAboutAvailableChange) {
-                var to = copyFile.to,
-                    encoding = copyFile.encoding;
-                utils.readContents(to, encoding, function (err, contentsOfTo) {
+                var to = copyFile.to;
+                utils.readContents(to, function (err, contentsOfTo, encoding) {
                     if (err) {
                         cb(chalk.red(' (unable to read "to.<mode>.dest" file at path ' + to + ')'));
                         warningsEncountered++;
                     } else {
+                        copyFile.encoding = encoding;
                         var needsUglify = copyFile.uglify;
 
                         utils.doUglify(needsUglify, contentsOfFrom, function (processedCode) {
@@ -590,7 +587,7 @@ if (module.parent) {
                                 if (md5(processedCode) === md5(contentsOfTo)) {
                                     cb(chalk.gray(' (up to date)'));
                                 } else {
-                                    cb(chalk.yellow(' (update is available)'));
+                                    cb(chalk.yellow(' (md5 update is available)'));
                                 }
                             } else {
                                 if (processedCode === contentsOfTo) {
@@ -641,15 +638,13 @@ if (module.parent) {
 
         var doCopyFile = function (copyFile, cb) {
             var from = copyFile.from,
-                to = copyFile.to,
-                encoding = copyFile.encoding;
+                to = copyFile.to;
 
             var printFrom = ' ' + chalk.gray(utils.getRelativePath(cwd, from)),
                 printTo = ' ' + chalk.gray(utils.getRelativePath(cwd, to)),
                 printFromTo = printFrom + ' to' + printTo;
 
-            var type = utils.getColoredTypeString(from, encoding);
-            var successMessage = ' ' + chalk.green('✓') + ` Copied (${type}),`,
+            var successMessage = ' ' + chalk.green('✓') + ` Copied `,
                 successMessageAvoidedFileOverwrite = ' ' + chalk.green('✓') + chalk.gray(' Already exists'),
                 errorMessageCouldNotReadFromSrc = ' ' + chalk.red('✗') + ' Could not read',
                 errorMessageFailedToCopy = ' ' + chalk.red('✗') + ' Failed to copy';
@@ -666,7 +661,7 @@ if (module.parent) {
                     )
                 )
             ) {
-                utils.readContents(copyFile.from, encoding, function (err, contentsOfFrom) {
+                utils.readContents(copyFile.from, function (err, contentsOfFrom, encoding) {
                     if (err) {
                         warningsEncountered++;
                         if (destFileExists && notifyAboutAvailableChange) {
@@ -677,6 +672,8 @@ if (module.parent) {
                         cb();
                         return;
                     }
+                    copyFile.encoding = encoding;
+                    var typeString = `[${utils.getColoredTypeString(encoding)}]`;
 
                     preWriteOperations(copyFile, contentsOfFrom, function (options) {
                         var contentsAfterPreWriteOperations = options.contentsAfterPreWriteOperations,
@@ -710,9 +707,9 @@ if (module.parent) {
                                                 // sematic name for the given context
                                                 let destFileDidNotExist = destFileDoesNotExist;
                                                 if (destFileDidNotExist) {
-                                                    logger.log(successMessage + printFromTo);
+                                                    logger.log(successMessage + typeString + printFromTo);
                                                 } else {
-                                                    logger.log(successMessage + (appendToSuccessMessage || '') + printFromTo);
+                                                    logger.log(successMessage + typeString + (appendToSuccessMessage || '') + printFromTo);
                                                 }
                                             }
                                             cb();
@@ -754,7 +751,6 @@ if (module.parent) {
                     // "copyFile" would be "undefined" when copy operation is not applicable
                     // in current "mode" for the given file
                     if (copyFile && typeof copyFile === 'object') {
-                        copyFile.encoding = utils.getEncoding(copyFile.from, settings.binaryExtensionsTestPattern);
                         doCopyFile(copyFile, function () {
                             callback();
                         });
