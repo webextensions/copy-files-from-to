@@ -42,16 +42,16 @@ var utils = {
     getEncoding: function(resourcePath, testPattern) {
         return testPattern.test(resourcePath) ? 'binary' : 'utf8';
     },
-    getColoredTypeString: function(resourcePath, encoding) {
+    getColoredTypeString: function(resourcePath, providedEncoding) {
         var encoding = utils.isRemoteResource(resourcePath)
             ? 'remote'
-            : encoding;
+            : providedEncoding;
 
         switch (encoding) {
-            case 'remote': return chalk.cyan('remote');
-            case 'binary': return chalk.yellow('binary');
-            case 'utf8': return ' utf8 ';
-            default: return chalk.red(encoding);
+        case 'remote': return chalk.cyan('remote');
+        case 'binary': return chalk.yellow('binary');
+        case 'utf8': return ' utf8 ';
+        default: return chalk.red(encoding);
         }
     },
     isRemoteResource: function (resourcePath) {
@@ -271,7 +271,7 @@ if (module.parent) {
             if (copyFile.only) {
                 copyFilesWithOnly.push(copyFile);
             }
-            copyFile.encoding = utils.getEncoding(copyFile.from, settings.binaryExtensionsTestPattern)
+            copyFile.encoding = utils.getEncoding(copyFile.from, settings.binaryExtensionsTestPattern);
         });
 
         if (copyFilesWithOnly.length) {
@@ -586,18 +586,18 @@ if (module.parent) {
 
                         utils.doUglify(needsUglify, contentsOfFrom, function (processedCode) {
                             if (copyFile.encoding === 'binary') {
-                              // Only run resource-intensive md5 on binary files
-                              if (md5(processedCode) === md5(contentsOfTo)) {
-                                cb(chalk.gray(' (up to date)'));
-                              } else {
-                                  cb(chalk.yellow(' (update is available)'));
-                              }
+                                // Only run resource-intensive md5 on binary files
+                                if (md5(processedCode) === md5(contentsOfTo)) {
+                                    cb(chalk.gray(' (up to date)'));
+                                } else {
+                                    cb(chalk.yellow(' (update is available)'));
+                                }
                             } else {
-                              if (processedCode === contentsOfTo) {
-                                  cb(chalk.gray(' (up to date)'));
-                              } else {
-                                  cb(chalk.yellow(' (update is available)'));
-                              }
+                                if (processedCode === contentsOfTo) {
+                                    cb(chalk.gray(' (up to date)'));
+                                } else {
+                                    cb(chalk.yellow(' (update is available)'));
+                                }
                             }
                         });
                     }
