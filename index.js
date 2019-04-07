@@ -9,7 +9,6 @@ var async = require('async'),
     cjson = require('cjson'),
     _ = require('lodash'),
     fastGlob = require('fast-glob'),
-    globParent = require('glob-parent'),
     isGlob = require('is-glob'),
     UglifyJS = require('uglify-js'),
     md5 = require('md5'),
@@ -86,7 +85,7 @@ var utils = {
     },
 
     ensureDirectoryExistence: function(dirPath) {
-        var dirname = path.dirname(dirPath);
+        var dirname = dirPath[dirPath.length-1] === '/' ? path.normalize(dirPath) : path.dirname(dirPath);
         if (!fs.existsSync(dirPath)) {
             try {
                 mkdirp.sync(dirname);
@@ -534,15 +533,11 @@ if (module.parent) {
                         entries.forEach(function (entry) {
                             var ob = JSON.parse(JSON.stringify(copyFile));
                             ob.from = entry;
+                            const entryPoint = entry.substring(configFileSourceDirectory.length+1);
+                            const targetTo = entryPoint.substring(entryPoint.indexOf('/'));
                             ob.to = path.join(
                                 ob.to,
-                                path.relative(
-                                    path.join(
-                                        configFileSourceDirectory,
-                                        globParent(ob.intendedFrom)
-                                    ),
-                                    ob.from
-                                )
+                                targetTo
                             );
                             arr.push(ob);
                         });
@@ -567,12 +562,24 @@ if (module.parent) {
                 fileDoesNotExist = !fileExists;
 
             var avoidedFileOverwrite;
+            let finalPath = '';
             if (
                 fileDoesNotExist ||
                 (fileExists && overwriteIfFileAlreadyExists)
             ) {
                 try {
+                    if (to[to.length-1] === '/') {
+                        const stats = fs.statSync(to);
+                        if (stats.isDirectory()) {
+                            if (typeof intendedFrom === 'string' && !isGlob(intendedFrom)) {
+                                const fileName = path.basename(intendedFrom);
+                                to = path.join(to, fileName);
+                            }
+                        }
+                    }
+
                     fs.writeFileSync(to, contents, copyFile.encoding === 'binary' ? null : 'utf8');
+                    finalPath = to;
                 } catch (e) {
                     cb(e);
                     return;
@@ -595,7 +602,7 @@ if (module.parent) {
             } else {
                 avoidedFileOverwrite = true;
             }
-            cb(null, avoidedFileOverwrite);
+            cb(null, avoidedFileOverwrite, finalPath);
         };
 
         var checkForAvailableChange = function (copyFile, contentsOfFrom, config, cb) {
@@ -670,9 +677,8 @@ if (module.parent) {
             var from = copyFile.from,
                 to = copyFile.to;
 
-            var printFrom = ' ' + chalk.gray(utils.getRelativePath(cwd, from)),
-                printTo = ' ' + chalk.gray(utils.getRelativePath(cwd, to)),
-                printFromTo = printFrom + ' to' + printTo;
+            var printFrom = ' ' + chalk.gray(utils.getRelativePath(cwd, from));
+            var printFromToOriginal =  ' ' + chalk.gray(utils.getRelativePath(cwd, to));
 
             var successMessage = ' ' + chalk.green('✓') + ` Copied `,
                 successMessageAvoidedFileOverwrite = ' ' + chalk.green('✓') + chalk.gray(' Already exists'),
@@ -697,7 +703,7 @@ if (module.parent) {
                         if (destFileExists && notifyAboutAvailableChange) {
                             logger.log(errorMessageCouldNotReadFromSrc + printFrom);
                         } else {
-                            logger.log(errorMessageFailedToCopy + printFromTo);
+                            logger.log(errorMessageFailedToCopy + printFromToOriginal);
                         }
                         cb();
                         return;
@@ -715,13 +721,16 @@ if (module.parent) {
                                 uglified: uglified,
                                 overwriteIfFileAlreadyExists: overwriteIfFileAlreadyExists
                             },
-                            function (err, avoidedFileOverwrite) {
+                            function (err, avoidedFileOverwrite, finalPath) {
                                 if (err) {
                                     warningsEncountered++;
                                     logger.log(errorMessageFailedToCopy + printFromTo);
                                     cb();
                                     return;
                                 } else {
+                                    var printTo = ' ' + chalk.gray(utils.getRelativePath(cwd, finalPath));
+                                    var printFromTo = printFrom + ' to' + printTo;
+
                                     postWriteOperations(
                                         copyFile,
                                         contentsOfFrom,
@@ -751,7 +760,7 @@ if (module.parent) {
                     });
                 });
             } else {
-                logger.log(successMessageAvoidedFileOverwrite + printTo);
+                logger.log(successMessageAvoidedFileOverwrite + printFromToOriginal);
                 cb();
             }
         };
