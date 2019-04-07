@@ -191,9 +191,10 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
             {
                 // from (required parameter)
                 //     Summary: This contains the path of a file which is either on disk or accessible via "http"/"https" URL
-                //     Data type: string or object
+                //     Data type: string, array, or object
                 //     Note: When it is set as a string, it would be used for all modes. When it is set as an object, it can be
                 //           configured differently for different modes (refer to the next example)
+                //           When it is set as an array, it describes an array of glob patterns and settings
                 "from": "http://example.com/index.html",
 
                 // to (required parameter)
@@ -202,6 +203,32 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
                 //     Note: When it is set as a string, it would be used for all modes. When it is set as an object, it can be
                 //           configured differently for different modes
                 "to": "example-index.html"
+            },
+
+            // Using "from" as an array
+            {
+                // from (required parameter)
+                //     Data type: array
+                //     Note: When it is set as an array, it describes an array of glob patterns and settings
+                //           Any strings in the array are used as glob patterns.
+                //           Any objects are used as fast-glob options: (See https://www.npmjs.com/package/fast-glob)
+                "from": [
+                    // Copy all files from the public folder
+                    "public/**/*",
+                    // A "!" at the beginning of the pattern will ignore any files matching that pattern
+                    // This ignores all files in the public/tmp folder
+                    "!public/tmp/**/*",
+                    // Any objects in the array will be collected together to pass to fast-glob as options
+                    // This will copy any files starting with a .*
+                    // This will not copy symlinked folders
+                    { dot: true, followSymlinkedDirectories: false }
+                ],
+                // to (required parameter)
+                //     Data type: string
+                //     Summary: This instruction set would write all the files found with the glob patterns and settings
+                //     to this folder.
+                //     Note: When using glob patterns for the "from" value the target "to" path needs to be a folder
+                "to": "build/"
             },
 
             // Using "from" and "to", both, as objects (and use string based mode entries)
@@ -299,6 +326,12 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
             //     Data type: boolean
             //     Default value: false
             "addReferenceToSourceOfOrigin": false
+
+            // ignoreDotFilesAndFolders (optional parameter)
+            //     Summary: When set to true, globbing will ignore files and folders starting with a "." dot.
+            //     Data type: boolean
+            //     Default value: false
+            "ignoreDotFilesAndFolders": true
         }
     }
     ```

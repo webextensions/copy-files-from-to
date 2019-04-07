@@ -388,7 +388,7 @@ if (module.parent) {
             var latest = null;
             var from = null,
                 skipFrom = null;
-            if (typeof copyFile.from === 'string') {
+            if (typeof copyFile.from === 'string' || Array.isArray(copyFile.from)) {
                 from = copyFile.from;
             } else {
                 var fromMode = copyFile.from[mode] || copyFile.from['default'] || {};
@@ -430,8 +430,8 @@ if (module.parent) {
                 to = null;
             }
 
-            if (typeof from === 'string' && typeof to === 'string') {
-                if (from.match(/\.js$/) || to.match(/\.js$/)) {
+            if ((typeof from === 'string' || Array.isArray(from)) && typeof to === 'string') {
+                if (!Array.isArray(from) && (from.match(/\.js$/) || to.match(/\.js$/))) {
                     // If "from" or "to" path ends with ".js", that indicates that it is a JS file
                     // So, retain the uglify setting.
                     // It is a "do nothing" block
@@ -447,6 +447,25 @@ if (module.parent) {
                     from: (function () {
                         if (utils.isRemoteResource(from)) {
                             return from;
+                        }
+                        if (Array.isArray(from)) {
+                            // If array, it's a glob instruction. Any objects are
+                            let globPatterns = [];
+                            let globSettings = {};
+                            from.forEach( globPart => {
+                                if (typeof globPart === 'string') {
+                                    if (globPart.charAt(0) === '!')
+                                        globPatterns.push('!' + path.join(configFileSourceDirectory, globPart.substring(1)));
+                                    else
+                                        globPatterns.push(path.join(configFileSourceDirectory, globPart));
+                                } else {
+                                    Object.assign(globSettings, globPart);
+                                }
+                            });
+                            return {
+                                globPatterns: globPatterns,
+                                globSettings: globSettings,
+                            };
                         }
                         return path.join(configFileSourceDirectory, from);
                     }()),
@@ -498,9 +517,20 @@ if (module.parent) {
         copyFiles = (function () {
             var arr = [];
             copyFiles.forEach(function (copyFile) {
-                if (copyFile) {
-                    if (isGlob(copyFile.from)) {
-                        var entries = fastGlob.sync([copyFile.from], { dot: !settings.ignoreDotFilesAndFolders });
+                if (copyFile && copyFile.from) {
+                    const entries = function() {
+                        if (typeof copyFile.from === 'string' && isGlob(copyFile.from)) {
+                            return fastGlob.sync([copyFile.from], { dot: !settings.ignoreDotFilesAndFolders });
+                        } else if (copyFile.from.globPatterns) {
+                            return fastGlob.sync(
+                                copyFile.from.globPatterns,
+                                Object.assign({ dot: !settings.ignoreDotFilesAndFolders }, copyFile.from.globSettings)
+                            );
+                        } else {
+                            return null;
+                        }
+                    }();
+                    if (entries && entries.length) {
                         entries.forEach(function (entry) {
                             var ob = JSON.parse(JSON.stringify(copyFile));
                             ob.from = entry;
