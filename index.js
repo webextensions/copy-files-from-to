@@ -500,7 +500,7 @@ if (module.parent) {
             copyFiles.forEach(function (copyFile) {
                 if (copyFile) {
                     if (isGlob(copyFile.from)) {
-                        var entries = fastGlob.sync([copyFile.from]);
+                        var entries = fastGlob.sync([copyFile.from], { dot: !settings.ignoreDotFilesAndFolders });
                         entries.forEach(function (entry) {
                             var ob = JSON.parse(JSON.stringify(copyFile));
                             ob.from = entry;
