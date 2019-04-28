@@ -48,11 +48,28 @@
         {
             "from": "assets/**/*.jpg",
             "to": "public/images/"
-        }
+        },
+
+        // Copy the files matching the "glob" pattern
+        {
+          "from": "assets/**/*",
+          "to": "public/images/"
+        },
+
+        // Copy the files matching the "glob" pattern
+        // Don't copy files from the assets/tmp folder
+        // Don't copy files starting with a . (i.e. the MacOS .DS_Store files)
+        // Note that this "dot" option overrides the global "ignoreDotFilesAndFolders" settings if set.
+        {
+          "from": ["assets/**/*", "!assets/tmp/**/*", { "dot": false }],
+          "to": "public/images/"
+        },
+
     ],
     "settings": {
         "whenFileExists": "notify-about-available-change",
         "uglifyJs": false,
-        "addReferenceToSourceOfOrigin": false
-    }
+        "addReferenceToSourceOfOrigin": false,
+        "ignoreDotFilesAndFolders": true
+      }
 }

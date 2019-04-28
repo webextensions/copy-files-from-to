@@ -9,9 +9,10 @@ var async = require('async'),
     cjson = require('cjson'),
     _ = require('lodash'),
     fastGlob = require('fast-glob'),
-    globParent = require('glob-parent'),
     isGlob = require('is-glob'),
-    UglifyJS = require('uglify-js');
+    UglifyJS = require('uglify-js'),
+    md5 = require('md5'),
+    isUtf8 = require('is-utf8');
 
 var logger = require('note-down');
 logger.removeOption('showLogLine');
@@ -35,6 +36,18 @@ var paramHelp = argv.h || argv.help,
 var cwd = process.cwd();
 
 var utils = {
+
+    getEncoding: function(contents) {
+        return isUtf8(contents) ? 'utf8' : 'binary';
+    },
+    getColoredTypeString: function(encoding) {
+        switch (encoding) {
+        case 'remote': return chalk.cyan('remote');
+        case 'binary': return chalk.yellow('binary');
+        case 'utf8': return ' utf8 ';
+        default: return chalk.red(encoding);
+        }
+    },
     isRemoteResource: function (resourcePath) {
         if (
             resourcePath.indexOf('https://') === 0 ||
@@ -72,7 +85,7 @@ var utils = {
     },
 
     ensureDirectoryExistence: function(dirPath) {
-        var dirname = path.dirname(dirPath);
+        var dirname = dirPath[dirPath.length-1] === '/' ? path.normalize(dirPath) : path.dirname(dirPath);
         if (!fs.existsSync(dirPath)) {
             try {
                 mkdirp.sync(dirname);
@@ -124,7 +137,7 @@ var utils = {
                         cb(err);
                     } else {
                         if (response.statusCode === 200) {
-                            cb(null, body);
+                            cb(null, body, 'remote');
                         } else {
                             cb('Unexpected statusCode (' + response.statusCode + ') for response of: ' + sourceFullPath);
                         }
@@ -133,8 +146,12 @@ var utils = {
             );
         } else {
             try {
-                var contents = fs.readFileSync(sourceFullPath, 'utf8');
-                cb(null, contents);
+                var rawContents = fs.readFileSync(sourceFullPath);
+                var encoding = utils.getEncoding(rawContents);
+                var contents = encoding === 'binary'
+                    ? rawContents
+                    : rawContents.toString('utf8');
+                cb(null, contents, encoding);
             } catch (e) {
                 cb(e);
             }
@@ -297,21 +314,27 @@ if (module.parent) {
                     async.parallel(
                         [
                             function (cb) {
-                                utils.readContents(resourceSrc, function (err, contents) {
+                                utils.readContents(resourceSrc, function (err, contents, encoding) {
                                     if (err) {
                                         logger.error(' ✗ Could not read: ' + resourceSrc);
                                     } else {
-                                        resourceSrcContents = contents;
+                                        if (encoding === 'binary')
+                                            resourceSrcContents = md5(contents);
+                                        else
+                                            resourceSrcContents = contents;
                                     }
                                     cb();
                                 });
                             },
                             function (cb) {
-                                utils.readContents(resourceLatest, function (err, contents) {
+                                utils.readContents(resourceLatest, function (err, contents, encoding) {
                                     if (err) {
                                         logger.error(' ✗ (Could not read) ' + chalk.gray(resourceLatest));
                                     } else {
-                                        resourceLatestContents = contents;
+                                        if (encoding === 'binary')
+                                            resourceLatestContents = md5(contents);
+                                        else
+                                            resourceLatestContents = contents;
                                     }
                                     cb();
                                 });
@@ -364,7 +387,7 @@ if (module.parent) {
             var latest = null;
             var from = null,
                 skipFrom = null;
-            if (typeof copyFile.from === 'string') {
+            if (typeof copyFile.from === 'string' || Array.isArray(copyFile.from)) {
                 from = copyFile.from;
             } else {
                 var fromMode = copyFile.from[mode] || copyFile.from['default'] || {};
@@ -406,8 +429,8 @@ if (module.parent) {
                 to = null;
             }
 
-            if (typeof from === 'string' && typeof to === 'string') {
-                if (from.match(/\.js$/) || to.match(/\.js$/)) {
+            if ((typeof from === 'string' || Array.isArray(from)) && typeof to === 'string') {
+                if (!Array.isArray(from) && (from.match(/\.js$/) || to.match(/\.js$/))) {
                     // If "from" or "to" path ends with ".js", that indicates that it is a JS file
                     // So, retain the uglify setting.
                     // It is a "do nothing" block
@@ -423,6 +446,25 @@ if (module.parent) {
                     from: (function () {
                         if (utils.isRemoteResource(from)) {
                             return from;
+                        }
+                        if (Array.isArray(from)) {
+                            // If array, it's a glob instruction. Any objects are
+                            let globPatterns = [];
+                            let globSettings = {};
+                            from.forEach( globPart => {
+                                if (typeof globPart === 'string') {
+                                    if (globPart.charAt(0) === '!')
+                                        globPatterns.push('!' + path.join(configFileSourceDirectory, globPart.substring(1)));
+                                    else
+                                        globPatterns.push(path.join(configFileSourceDirectory, globPart));
+                                } else {
+                                    Object.assign(globSettings, globPart);
+                                }
+                            });
+                            return {
+                                globPatterns: globPatterns,
+                                globSettings: globSettings,
+                            };
                         }
                         return path.join(configFileSourceDirectory, from);
                     }()),
@@ -474,21 +516,28 @@ if (module.parent) {
         copyFiles = (function () {
             var arr = [];
             copyFiles.forEach(function (copyFile) {
-                if (copyFile) {
-                    if (isGlob(copyFile.from)) {
-                        var entries = fastGlob.sync([copyFile.from]);
+                if (copyFile && copyFile.from) {
+                    const entries = function() {
+                        if (typeof copyFile.from === 'string' && isGlob(copyFile.from)) {
+                            return fastGlob.sync([copyFile.from], { dot: !settings.ignoreDotFilesAndFolders });
+                        } else if (copyFile.from.globPatterns) {
+                            return fastGlob.sync(
+                                copyFile.from.globPatterns,
+                                Object.assign({ dot: !settings.ignoreDotFilesAndFolders }, copyFile.from.globSettings)
+                            );
+                        } else {
+                            return null;
+                        }
+                    }();
+                    if (entries && entries.length) {
                         entries.forEach(function (entry) {
                             var ob = JSON.parse(JSON.stringify(copyFile));
                             ob.from = entry;
+                            const entryPoint = entry.substring(configFileSourceDirectory.length+1);
+                            const targetTo = entryPoint.substring(entryPoint.indexOf('/'));
                             ob.to = path.join(
                                 ob.to,
-                                path.relative(
-                                    path.join(
-                                        configFileSourceDirectory,
-                                        globParent(ob.intendedFrom)
-                                    ),
-                                    ob.from
-                                )
+                                targetTo
                             );
                             arr.push(ob);
                         });
@@ -513,12 +562,24 @@ if (module.parent) {
                 fileDoesNotExist = !fileExists;
 
             var avoidedFileOverwrite;
+            let finalPath = '';
             if (
                 fileDoesNotExist ||
                 (fileExists && overwriteIfFileAlreadyExists)
             ) {
                 try {
-                    fs.writeFileSync(to, contents);
+                    if (to[to.length-1] === '/') {
+                        const stats = fs.statSync(to);
+                        if (stats.isDirectory()) {
+                            if (typeof intendedFrom === 'string' && !isGlob(intendedFrom)) {
+                                const fileName = path.basename(intendedFrom);
+                                to = path.join(to, fileName);
+                            }
+                        }
+                    }
+
+                    fs.writeFileSync(to, contents, copyFile.encoding === 'binary' ? null : 'utf8');
+                    finalPath = to;
                 } catch (e) {
                     cb(e);
                     return;
@@ -535,13 +596,13 @@ if (module.parent) {
                           the code has been able to write the "to" file, then it should
                           be able to write the "<to>.source.txt" file
                     */
-                    fs.writeFileSync(to + '.source.txt', sourceDetails);
+                    fs.writeFileSync(to + '.source.txt', sourceDetails, 'utf8');
                 }
                 avoidedFileOverwrite = false;
             } else {
                 avoidedFileOverwrite = true;
             }
-            cb(null, avoidedFileOverwrite);
+            cb(null, avoidedFileOverwrite, finalPath);
         };
 
         var checkForAvailableChange = function (copyFile, contentsOfFrom, config, cb) {
@@ -549,18 +610,28 @@ if (module.parent) {
 
             if (notifyAboutAvailableChange) {
                 var to = copyFile.to;
-                utils.readContents(to, function (err, contentsOfTo) {
+                utils.readContents(to, function (err, contentsOfTo, encoding) {
                     if (err) {
                         cb(chalk.red(' (unable to read "to.<mode>.dest" file at path ' + to + ')'));
                         warningsEncountered++;
                     } else {
+                        copyFile.encoding = encoding;
                         var needsUglify = copyFile.uglify;
 
                         utils.doUglify(needsUglify, contentsOfFrom, function (processedCode) {
-                            if (processedCode === contentsOfTo) {
-                                cb(chalk.gray(' (up to date)'));
+                            if (copyFile.encoding === 'binary') {
+                                // Only run resource-intensive md5 on binary files
+                                if (md5(processedCode) === md5(contentsOfTo)) {
+                                    cb(chalk.gray(' (up to date)'));
+                                } else {
+                                    cb(chalk.yellow(' (md5 update is available)'));
+                                }
                             } else {
-                                cb(chalk.yellow(' (update is available)'));
+                                if (processedCode === contentsOfTo) {
+                                    cb(chalk.gray(' (up to date)'));
+                                } else {
+                                    cb(chalk.yellow(' (update is available)'));
+                                }
                             }
                         });
                     }
@@ -606,10 +677,10 @@ if (module.parent) {
             var from = copyFile.from,
                 to = copyFile.to;
 
-            var printFrom = ' ' + chalk.gray(utils.getRelativePath(cwd, from)),
-                printTo = ' ' + chalk.gray(utils.getRelativePath(cwd, to)),
-                printFromTo = printFrom + ' to' + printTo;
-            var successMessage = ' ' + chalk.green('✓') + ' Copied',
+            var printFrom = ' ' + chalk.gray(utils.getRelativePath(cwd, from));
+            var printFromToOriginal =  ' ' + chalk.gray(utils.getRelativePath(cwd, to));
+
+            var successMessage = ' ' + chalk.green('✓') + ` Copied `,
                 successMessageAvoidedFileOverwrite = ' ' + chalk.green('✓') + chalk.gray(' Already exists'),
                 errorMessageCouldNotReadFromSrc = ' ' + chalk.red('✗') + ' Could not read',
                 errorMessageFailedToCopy = ' ' + chalk.red('✗') + ' Failed to copy';
@@ -626,17 +697,19 @@ if (module.parent) {
                     )
                 )
             ) {
-                utils.readContents(copyFile.from, function (err, contentsOfFrom) {
+                utils.readContents(copyFile.from, function (err, contentsOfFrom, encoding) {
                     if (err) {
                         warningsEncountered++;
                         if (destFileExists && notifyAboutAvailableChange) {
                             logger.log(errorMessageCouldNotReadFromSrc + printFrom);
                         } else {
-                            logger.log(errorMessageFailedToCopy + printFromTo);
+                            logger.log(errorMessageFailedToCopy + printFromToOriginal);
                         }
                         cb();
                         return;
                     }
+                    copyFile.encoding = encoding;
+                    var typeString = `[${utils.getColoredTypeString(encoding)}]`;
 
                     preWriteOperations(copyFile, contentsOfFrom, function (options) {
                         var contentsAfterPreWriteOperations = options.contentsAfterPreWriteOperations,
@@ -648,13 +721,16 @@ if (module.parent) {
                                 uglified: uglified,
                                 overwriteIfFileAlreadyExists: overwriteIfFileAlreadyExists
                             },
-                            function (err, avoidedFileOverwrite) {
+                            function (err, avoidedFileOverwrite, finalPath) {
                                 if (err) {
                                     warningsEncountered++;
                                     logger.log(errorMessageFailedToCopy + printFromTo);
                                     cb();
                                     return;
                                 } else {
+                                    var printTo = ' ' + chalk.gray(utils.getRelativePath(cwd, finalPath));
+                                    var printFromTo = printFrom + ' to' + printTo;
+
                                     postWriteOperations(
                                         copyFile,
                                         contentsOfFrom,
@@ -670,9 +746,9 @@ if (module.parent) {
                                                 // sematic name for the given context
                                                 let destFileDidNotExist = destFileDoesNotExist;
                                                 if (destFileDidNotExist) {
-                                                    logger.log(successMessage + printFromTo);
+                                                    logger.log(successMessage + typeString + printFromTo);
                                                 } else {
-                                                    logger.log(successMessage + (appendToSuccessMessage || '') + printFromTo);
+                                                    logger.log(successMessage + typeString + (appendToSuccessMessage || '') + printFromTo);
                                                 }
                                             }
                                             cb();
@@ -684,7 +760,7 @@ if (module.parent) {
                     });
                 });
             } else {
-                logger.log(successMessageAvoidedFileOverwrite + printTo);
+                logger.log(successMessageAvoidedFileOverwrite + printFromToOriginal);
                 cb();
             }
         };
