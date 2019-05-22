@@ -38,8 +38,8 @@ var cwd = process.cwd();
 var utils = {
     // https://github.com/sindresorhus/strip-bom/blob/f01a9435b8e7d31bb2bd757e67436d0a1864db0e/index.js
     // Catches EFBBBF (UTF-8 BOM) because the buffer-to-string
-	// conversion translates it to FEFF (UTF-16 BOM)
-	stripBom: function (string) {
+    // conversion translates it to FEFF (UTF-16 BOM)
+    stripBom: function (string) {
         if (string.charCodeAt(0) === 0xFEFF) {
             return string.slice(1);
         }
