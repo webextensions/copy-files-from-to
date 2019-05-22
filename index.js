@@ -36,6 +36,15 @@ var paramHelp = argv.h || argv.help,
 var cwd = process.cwd();
 
 var utils = {
+    // https://github.com/sindresorhus/strip-bom/blob/f01a9435b8e7d31bb2bd757e67436d0a1864db0e/index.js
+    // Catches EFBBBF (UTF-8 BOM) because the buffer-to-string
+	// conversion translates it to FEFF (UTF-16 BOM)
+	stripBom: function (string) {
+        if (string.charCodeAt(0) === 0xFEFF) {
+            return string.slice(1);
+        }
+        return string;
+    },
 
     getEncoding: function(contents) {
         return isUtf8(contents) ? 'utf8' : 'binary';
@@ -237,6 +246,7 @@ if (module.parent) {
     try {
         logger.info('Reading copy instructions from file ' + utils.getRelativePath(cwd, configFileSource));
         cjsonText = fs.readFileSync(configFileSource, 'utf8');
+        cjsonText = utils.stripBom(cjsonText);
     } catch (e) {
         utils.exitWithError(e, 'Error in reading file: ' + configFileSource);
     }
