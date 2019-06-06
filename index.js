@@ -439,6 +439,11 @@ if (module.parent) {
                 to = null;
             }
 
+            let toFlat = null;
+            if (copyFile.toFlat) {
+                toFlat = true;
+            }
+
             if ((typeof from === 'string' || Array.isArray(from)) && typeof to === 'string') {
                 if (!Array.isArray(from) && (from.match(/\.js$/) || to.match(/\.js$/))) {
                     // If "from" or "to" path ends with ".js", that indicates that it is a JS file
@@ -479,6 +484,7 @@ if (module.parent) {
                         return path.join(configFileSourceDirectory, from);
                     }()),
                     to: path.join(configFileSourceDirectory, to),
+                    toFlat: toFlat,
                     uglify: uglify
                 };
             } else {
@@ -544,7 +550,12 @@ if (module.parent) {
                             var ob = JSON.parse(JSON.stringify(copyFile));
                             ob.from = entry;
                             const entryPoint = entry.substring(configFileSourceDirectory.length+1);
-                            const targetTo = entryPoint.substring(entryPoint.indexOf('/'));
+                            let targetTo = entryPoint.substring(entryPoint.indexOf('/'));
+                            if (copyFile.toFlat) {
+                                const fileName = path.basename(targetTo);
+                                targetTo = fileName;
+                            }
+
                             ob.to = path.join(
                                 ob.to,
                                 targetTo
@@ -612,7 +623,7 @@ if (module.parent) {
             } else {
                 avoidedFileOverwrite = true;
             }
-            cb(null, avoidedFileOverwrite, finalPath);
+            cb(null, avoidedFileOverwrite, finalPath || to);
         };
 
         var checkForAvailableChange = function (copyFile, contentsOfFrom, config, cb) {

@@ -102,10 +102,17 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
             }
         },
 
-        // Copy the files matching the "glob" pattern
+        // Copy the files matching the "glob" pattern (matching files, along with the their folder structure go into the "to" directory)
         {
             "from": "assets/**/*.jpg",
             "to": "public/images/"
+        },
+
+        // Copy the files matching the "glob" pattern (all of the matching files directly go into the "to" directory) since "toFlat" is set to "true"
+        {
+            "from": "assets/**/*.jpg",
+            "to": "public/copy-all-jpg-files-to-this-directory/",
+            "toFlat": true
         }
     ],
     "settings": {
