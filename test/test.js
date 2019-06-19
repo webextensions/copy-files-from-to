@@ -53,5 +53,47 @@ describe('package', function() {
                 }
             );
         });
+
+        it('should be able to copy files from a cjson config', function (done) {
+            var advancedUsageDir = path.join(__dirname, 'advanced-usage');
+
+            rimraf.sync(path.join(advancedUsageDir, 'public'));
+            rimraf.sync(path.join(advancedUsageDir, 'scripts'));
+
+            var
+                underscoreJs                  = path.join(advancedUsageDir,                    'scripts', 'underscore.js'),
+                underscoreJsExpectedOutput    = path.join(advancedUsageDir, 'expected-output', 'scripts', 'underscore.js'),
+                consolePanelJs                = path.join(advancedUsageDir,                    'scripts', 'console-panel', 'console-panel.js'),
+                consolePanelJsExpectedOutput  = path.join(advancedUsageDir, 'expected-output', 'scripts', 'console-panel', 'console-panel.js'),
+                aJpg                          = path.join(advancedUsageDir,                    'public', 'images', 'test-a', 'a.jpg'),
+                bJpg                          = path.join(advancedUsageDir,                    'public', 'images', 'test-b', 'b.jpg'),
+                cTxt                          = path.join(advancedUsageDir,                    'public', 'images', 'test-c', 'c.txt'),
+                aJpgExpectedOutput            = path.join(advancedUsageDir, 'expected-output', 'public', 'images', 'test-a', 'a.jpg'),
+                bJpgExpectedOutput            = path.join(advancedUsageDir, 'expected-output', 'public', 'images', 'test-b', 'b.jpg'),
+                cTxtExpectedOutput            = path.join(advancedUsageDir, 'expected-output', 'public', 'images', 'test-c', 'c.txt'),
+                aJpgFlat                      = path.join(advancedUsageDir,                    'public', 'copy-to-flat-directory', 'a.jpg'),
+                bJpgFlat                      = path.join(advancedUsageDir,                    'public', 'copy-to-flat-directory', 'b.jpg'),
+                cTxtFlat                      = path.join(advancedUsageDir,                    'public', 'copy-to-flat-directory', 'c.txt');
+
+            shell.exec(
+                path.join(__dirname, '..', 'index.js'),
+                {
+                    silent: true,
+                    cwd: advancedUsageDir
+                },
+                function (exitCode, stdout, stderr) {
+                    expect(file(underscoreJs)).to.equal(file(underscoreJsExpectedOutput));
+                    expect(file(consolePanelJs)).to.equal(file(consolePanelJsExpectedOutput));
+                    expect(file(aJpg)).to.equal(file(aJpgExpectedOutput));
+                    expect(file(bJpg)).to.equal(file(bJpgExpectedOutput));
+                    expect(file(cTxt)).to.equal(file(cTxtExpectedOutput));
+                    expect(file(aJpgFlat)).to.equal(file(aJpgExpectedOutput));
+                    expect(file(bJpgFlat)).to.equal(file(bJpgExpectedOutput));
+                    expect(file(cTxtFlat)).to.equal(file(cTxtExpectedOutput));
+
+                    done();
+                }
+            );
+        });
     });
 });
