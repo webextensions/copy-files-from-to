@@ -95,5 +95,28 @@ describe('package', function() {
                 }
             );
         });
+
+        it('should be able to copy a file in custom mode', function (done) {
+            var dirToUse = path.join(__dirname, 'test-copy-file-in-custom-mode');
+
+            rimraf.sync(path.join(dirToUse, 'scripts'));
+
+            var
+                underscoreJsMap                = path.join(dirToUse,                    'scripts', 'underscore.js.map'),
+                underscoreJsMapExpectedOutput  = path.join(dirToUse, 'expected-output', 'scripts', 'underscore.js.map');
+
+            shell.exec(
+                path.join(__dirname, '..', 'index.js') + ' --mode pre-production',
+                {
+                    silent: true,
+                    cwd: dirToUse
+                },
+                function (exitCode, stdout, stderr) {
+                    expect(file(underscoreJsMap)).to.equal(file(underscoreJsMapExpectedOutput));
+
+                    done();
+                }
+            );
+        });
     });
 });

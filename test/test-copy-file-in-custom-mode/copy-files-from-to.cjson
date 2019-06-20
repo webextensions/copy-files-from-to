@@ -1,0 +1,14 @@
+{
+    "copyFiles": [
+        // Copy this file only in "pre-production" mode
+        {
+            "from": "https://raw.githubusercontent.com/jashkenas/underscore/36eef3c118041ae6386b6bba2b48b099e57ca0e5/underscore-min.js.map",
+            "to": {
+                "pre-production": "scripts/underscore.js.map"
+            }
+        }
+    ],
+    "settings": {
+        "whenFileExists": "overwrite"
+    }
+}

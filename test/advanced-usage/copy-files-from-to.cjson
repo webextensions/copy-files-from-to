@@ -4,15 +4,15 @@
         // In "development" mode, copy from the full version of the library, in all other modes, use the minified version
         {
             "from": {
-                "default": "https://raw.githubusercontent.com/jashkenas/underscore/master/underscore-min.js",
-                "development": "https://raw.githubusercontent.com/jashkenas/underscore/master/underscore.js"
+                "default": "https://raw.githubusercontent.com/jashkenas/underscore/1.9.1/underscore-min.js",
+                "development": "https://raw.githubusercontent.com/jashkenas/underscore/1.9.1/underscore.js"
             },
             "to": "scripts/underscore.js"
         },
 
         // Copy this file only in "pre-production" mode
         {
-            "from": "https://raw.githubusercontent.com/jashkenas/underscore/master/underscore-min.js.map",
+            "from": "https://raw.githubusercontent.com/jashkenas/underscore/1.9.1/underscore-min.js.map",
             "to": {
                 "default": {
                     "skip": true
@@ -35,7 +35,7 @@
 
         // Copy this file in all modes except "production" mode
         {
-            "from": "https://raw.githubusercontent.com/webextensions/console-panel/master/src/console-panel.js",
+            "from": "https://raw.githubusercontent.com/webextensions/console-panel/v1.0.3/src/console-panel.js",
             "to": {
                 "default": "scripts/console-panel/console-panel.js",
                 "production": {
