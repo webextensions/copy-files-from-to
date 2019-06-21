@@ -9,6 +9,7 @@ var async = require('async'),
     cjson = require('cjson'),
     _ = require('lodash'),
     fastGlob = require('fast-glob'),
+    globParent = require('glob-parent'),
     isGlob = require('is-glob'),
     UglifyJS = require('uglify-js'),
     md5 = require('md5'),
@@ -288,13 +289,13 @@ if (module.parent) {
         var arrFromAndLatest = [];
 
         for (var i = 0; i < copyFiles.length; i++) {
-            let copyFile = copyFiles[i];
-            let from = copyFile.from;
+            var copyFile = copyFiles[i];
+            var from = copyFile.from;
             if (from && typeof from === 'object') {
-                let modes = Object.keys(from);
-                for (let i = 0; i < modes.length; i++) {
-                    let mode = modes[i],
-                        fromMode = from[mode];
+                var modes = Object.keys(from);
+                for (var j = 0; j < modes.length; j++) {
+                    var thisMode = modes[j],
+                        fromMode = from[thisMode];
                     if (fromMode.src && fromMode.latest) {
                         var ob = {
                             src: fromMode.src,
@@ -439,7 +440,7 @@ if (module.parent) {
                 to = null;
             }
 
-            let toFlat = null;
+            var toFlat = null;
             if (copyFile.toFlat) {
                 toFlat = true;
             }
@@ -464,8 +465,8 @@ if (module.parent) {
                         }
                         if (Array.isArray(from)) {
                             // If array, it's a glob instruction. Any objects are
-                            let globPatterns = [];
-                            let globSettings = {};
+                            var globPatterns = [];
+                            var globSettings = {};
                             from.forEach( globPart => {
                                 if (typeof globPart === 'string') {
                                     if (globPart.charAt(0) === '!')
@@ -533,7 +534,7 @@ if (module.parent) {
             var arr = [];
             copyFiles.forEach(function (copyFile) {
                 if (copyFile && copyFile.from) {
-                    const entries = function() {
+                    var entries = function() {
                         if (typeof copyFile.from === 'string' && isGlob(copyFile.from)) {
                             return fastGlob.sync([copyFile.from], { dot: !settings.ignoreDotFilesAndFolders });
                         } else if (copyFile.from.globPatterns) {
@@ -549,10 +550,16 @@ if (module.parent) {
                         entries.forEach(function (entry) {
                             var ob = JSON.parse(JSON.stringify(copyFile));
                             ob.from = entry;
-                            const entryPoint = entry.substring(configFileSourceDirectory.length+1);
-                            let targetTo = entryPoint.substring(entryPoint.indexOf('/'));
+
+                            var targetTo = path.relative(
+                                path.join(
+                                    configFileSourceDirectory,
+                                    globParent(ob.intendedFrom)
+                                ),
+                                ob.from
+                            );
                             if (copyFile.toFlat) {
-                                const fileName = path.basename(targetTo);
+                                var fileName = path.basename(targetTo);
                                 targetTo = fileName;
                             }
 
@@ -583,17 +590,17 @@ if (module.parent) {
                 fileDoesNotExist = !fileExists;
 
             var avoidedFileOverwrite;
-            let finalPath = '';
+            var finalPath = '';
             if (
                 fileDoesNotExist ||
                 (fileExists && overwriteIfFileAlreadyExists)
             ) {
                 try {
                     if (to[to.length-1] === '/') {
-                        const stats = fs.statSync(to);
+                        var stats = fs.statSync(to);
                         if (stats.isDirectory()) {
                             if (typeof intendedFrom === 'string' && !isGlob(intendedFrom)) {
-                                const fileName = path.basename(intendedFrom);
+                                var fileName = path.basename(intendedFrom);
                                 to = path.join(to, fileName);
                             }
                         }
@@ -765,7 +772,7 @@ if (module.parent) {
                                             } else {
                                                 // Copying value of "destFileDoesNotExist" to "destFileDidNotExist" since that has a better
                                                 // sematic name for the given context
-                                                let destFileDidNotExist = destFileDoesNotExist;
+                                                var destFileDidNotExist = destFileDoesNotExist;
                                                 if (destFileDidNotExist) {
                                                     logger.log(successMessage + typeString + printFromTo);
                                                 } else {

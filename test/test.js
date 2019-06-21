@@ -31,12 +31,14 @@ describe('package', function() {
             rimraf.sync(path.join(basicUsageDir, 'scripts'));
 
             var
-                consolePanelJs                = path.join(basicUsageDir,                    'scripts', 'console-panel', 'console-panel.js'),
-                consolePanelJsExpectedOutput  = path.join(basicUsageDir, 'expected-output', 'scripts', 'console-panel', 'console-panel.js'),
-                consolePanelCss               = path.join(basicUsageDir,                    'scripts', 'console-panel', 'console-panel.css'),
-                consolePanelCssExpectedOutput = path.join(basicUsageDir, 'expected-output', 'scripts', 'console-panel', 'console-panel.css'),
-                jqueryJs                      = path.join(basicUsageDir,                    'scripts', 'jquery', 'jquery.js'),
-                jqueryJsExpectedOutput        = path.join(basicUsageDir, 'expected-output', 'scripts', 'jquery', 'jquery.js');
+                consolePanelJsOriginal  = path.join(basicUsageDir, 'expected-output', 'scripts', 'console-panel', 'console-panel.js'),
+                consolePanelJs          = path.join(basicUsageDir,                    'scripts', 'console-panel', 'console-panel.js'),
+
+                consolePanelCssOriginal = path.join(basicUsageDir, 'expected-output', 'scripts', 'console-panel', 'console-panel.css'),
+                consolePanelCss         = path.join(basicUsageDir,                    'scripts', 'console-panel', 'console-panel.css'),
+
+                jqueryJsOriginal        = path.join(basicUsageDir, 'node_modules', 'jquery', 'dist', 'jquery.js'),
+                jqueryJs                = path.join(basicUsageDir, 'scripts', 'jquery', 'jquery.js');
 
             shell.exec(
                 path.join(__dirname, '..', 'index.js'),
@@ -45,9 +47,9 @@ describe('package', function() {
                     cwd: basicUsageDir
                 },
                 function (exitCode, stdout, stderr) {
-                    expect(file(jqueryJs)).to.equal(file(jqueryJsExpectedOutput));
-                    expect(file(consolePanelJs)).to.equal(file(consolePanelJsExpectedOutput));
-                    expect(file(consolePanelCss)).to.equal(file(consolePanelCssExpectedOutput));
+                    expect(file(jqueryJs)).to.equal(file(jqueryJsOriginal));
+                    expect(file(consolePanelJs)).to.equal(file(consolePanelJsOriginal));
+                    expect(file(consolePanelCss)).to.equal(file(consolePanelCssOriginal));
 
                     done();
                 }
@@ -61,19 +63,23 @@ describe('package', function() {
             rimraf.sync(path.join(advancedUsageDir, 'scripts'));
 
             var
-                underscoreJs                  = path.join(advancedUsageDir,                    'scripts', 'underscore.js'),
-                underscoreJsExpectedOutput    = path.join(advancedUsageDir, 'expected-output', 'scripts', 'underscore.js'),
-                consolePanelJs                = path.join(advancedUsageDir,                    'scripts', 'console-panel', 'console-panel.js'),
-                consolePanelJsExpectedOutput  = path.join(advancedUsageDir, 'expected-output', 'scripts', 'console-panel', 'console-panel.js'),
-                aJpg                          = path.join(advancedUsageDir,                    'public', 'images', 'test-a', 'a.jpg'),
-                bJpg                          = path.join(advancedUsageDir,                    'public', 'images', 'test-b', 'b.jpg'),
-                cTxt                          = path.join(advancedUsageDir,                    'public', 'images', 'test-c', 'c.txt'),
-                aJpgExpectedOutput            = path.join(advancedUsageDir, 'expected-output', 'public', 'images', 'test-a', 'a.jpg'),
-                bJpgExpectedOutput            = path.join(advancedUsageDir, 'expected-output', 'public', 'images', 'test-b', 'b.jpg'),
-                cTxtExpectedOutput            = path.join(advancedUsageDir, 'expected-output', 'public', 'images', 'test-c', 'c.txt'),
-                aJpgFlat                      = path.join(advancedUsageDir,                    'public', 'copy-to-flat-directory', 'a.jpg'),
-                bJpgFlat                      = path.join(advancedUsageDir,                    'public', 'copy-to-flat-directory', 'b.jpg'),
-                cTxtFlat                      = path.join(advancedUsageDir,                    'public', 'copy-to-flat-directory', 'c.txt');
+                underscoreJsOriginal   = path.join(advancedUsageDir, 'expected-output', 'scripts', 'underscore.js'),
+                underscoreJs           = path.join(advancedUsageDir,                    'scripts', 'underscore.js'),
+
+                consolePanelJsOriginal = path.join(advancedUsageDir, 'expected-output', 'scripts', 'console-panel', 'console-panel.js'),
+                consolePanelJs         = path.join(advancedUsageDir,                    'scripts', 'console-panel', 'console-panel.js'),
+
+                aJpgOriginal           = path.join(advancedUsageDir, 'expected-output', 'public', 'images', 'test-a', 'a.jpg'),
+                bJpgOriginal           = path.join(advancedUsageDir, 'expected-output', 'public', 'images', 'test-b', 'b.jpg'),
+                cTxtOriginal           = path.join(advancedUsageDir, 'expected-output', 'public', 'images', 'test-c', 'c.txt'),
+
+                aJpg                   = path.join(advancedUsageDir,                    'public', 'images', 'test-a', 'a.jpg'),
+                bJpg                   = path.join(advancedUsageDir,                    'public', 'images', 'test-b', 'b.jpg'),
+                cTxt                   = path.join(advancedUsageDir,                    'public', 'images', 'test-c', 'c.txt'),
+
+                aJpgFlat               = path.join(advancedUsageDir,                    'public', 'copy-to-flat-directory', 'a.jpg'),
+                bJpgFlat               = path.join(advancedUsageDir,                    'public', 'copy-to-flat-directory', 'b.jpg'),
+                cTxtFlat               = path.join(advancedUsageDir,                    'public', 'copy-to-flat-directory', 'c.txt');
 
             shell.exec(
                 path.join(__dirname, '..', 'index.js'),
@@ -82,14 +88,16 @@ describe('package', function() {
                     cwd: advancedUsageDir
                 },
                 function (exitCode, stdout, stderr) {
-                    expect(file(underscoreJs)).to.equal(file(underscoreJsExpectedOutput));
-                    expect(file(consolePanelJs)).to.equal(file(consolePanelJsExpectedOutput));
-                    expect(file(aJpg)).to.equal(file(aJpgExpectedOutput));
-                    expect(file(bJpg)).to.equal(file(bJpgExpectedOutput));
-                    expect(file(cTxt)).to.equal(file(cTxtExpectedOutput));
-                    expect(file(aJpgFlat)).to.equal(file(aJpgExpectedOutput));
-                    expect(file(bJpgFlat)).to.equal(file(bJpgExpectedOutput));
-                    expect(file(cTxtFlat)).to.equal(file(cTxtExpectedOutput));
+                    expect(file(underscoreJs)).to.equal(file(underscoreJsOriginal));
+                    expect(file(consolePanelJs)).to.equal(file(consolePanelJsOriginal));
+
+                    expect(file(aJpg)).to.equal(file(aJpgOriginal));
+                    expect(file(bJpg)).to.equal(file(bJpgOriginal));
+                    expect(file(cTxt)).to.equal(file(cTxtOriginal));
+
+                    expect(file(aJpgFlat)).to.equal(file(aJpgOriginal));
+                    expect(file(bJpgFlat)).to.equal(file(bJpgOriginal));
+                    expect(file(cTxtFlat)).to.equal(file(cTxtOriginal));
 
                     done();
                 }
@@ -102,8 +110,8 @@ describe('package', function() {
             rimraf.sync(path.join(dirToUse, 'scripts'));
 
             var
-                underscoreJsMap                = path.join(dirToUse,                    'scripts', 'underscore.js.map'),
-                underscoreJsMapExpectedOutput  = path.join(dirToUse, 'expected-output', 'scripts', 'underscore.js.map');
+                underscoreJsMapOriginal = path.join(dirToUse, 'expected-output', 'scripts', 'underscore.js.map'),
+                underscoreJsMap         = path.join(dirToUse,                    'scripts', 'underscore.js.map');
 
             shell.exec(
                 path.join(__dirname, '..', 'index.js') + ' --mode pre-production',
@@ -112,7 +120,41 @@ describe('package', function() {
                     cwd: dirToUse
                 },
                 function (exitCode, stdout, stderr) {
-                    expect(file(underscoreJsMap)).to.equal(file(underscoreJsMapExpectedOutput));
+                    expect(file(underscoreJsMap)).to.equal(file(underscoreJsMapOriginal));
+
+                    done();
+                }
+            );
+        });
+
+        it('should be able to copy files from parent folder', function (done) {
+            var testCopyFilesFromParentFolderDir = path.join(__dirname, 'test-copy-files-from-parent-folder');
+            var cwdToUse = path.join(testCopyFilesFromParentFolderDir, 'folder-input-1', 'folder-input-2');
+
+            rimraf.sync(path.join(testCopyFilesFromParentFolderDir, 'dest'));
+
+            var
+                consolePanelJsOriginal  = path.join(testCopyFilesFromParentFolderDir, 'code', 'console-panel.js'),
+                consolePanelCssOriginal = path.join(testCopyFilesFromParentFolderDir, 'code', 'console-panel.css'),
+
+                consolePanelJsRegExp1   = path.join(testCopyFilesFromParentFolderDir, 'dest', 'folder-output-1', 'console-panel.js'),
+                consolePanelCssRegExp1  = path.join(testCopyFilesFromParentFolderDir, 'dest', 'folder-output-1', 'console-panel.css'),
+
+                consolePanelJsRegExp2   = path.join(testCopyFilesFromParentFolderDir, 'dest', 'folder-output-2', 'console-panel.js'),
+                consolePanelCssRegExp2  = path.join(testCopyFilesFromParentFolderDir, 'dest', 'folder-output-2', 'console-panel.css');
+
+            shell.exec(
+                path.join(__dirname, '..', 'index.js'),
+                {
+                    silent: true,
+                    cwd: cwdToUse
+                },
+                function (exitCode, stdout, stderr) {
+                    expect(file(consolePanelJsRegExp1)).to.equal(file(consolePanelJsOriginal));
+                    expect(file(consolePanelCssRegExp1)).to.equal(file(consolePanelCssOriginal));
+
+                    expect(file(consolePanelJsRegExp2)).to.equal(file(consolePanelJsOriginal));
+                    expect(file(consolePanelCssRegExp2)).to.equal(file(consolePanelCssOriginal));
 
                     done();
                 }

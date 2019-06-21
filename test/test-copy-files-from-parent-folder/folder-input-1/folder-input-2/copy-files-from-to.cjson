@@ -1,0 +1,15 @@
+{
+    "copyFiles": [
+        {
+            "from": "../../code/*.*",
+            "to": "../../dest/folder-output-1/"
+        },
+        {
+            "from": "../../code/*.{js,css}",
+            "to": "../../dest/folder-output-2/"
+        }
+    ],
+    "settings": {
+        "whenFileExists": "overwrite"
+    }
+}
