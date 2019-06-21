@@ -137,11 +137,11 @@ describe('package', function() {
                 consolePanelJsOriginal  = path.join(testCopyFilesFromParentFolderDir, 'code', 'console-panel.js'),
                 consolePanelCssOriginal = path.join(testCopyFilesFromParentFolderDir, 'code', 'console-panel.css'),
 
-                consolePanelJsRegExp1   = path.join(testCopyFilesFromParentFolderDir, 'dest', 'folder-output-1', 'console-panel.js'),
-                consolePanelCssRegExp1  = path.join(testCopyFilesFromParentFolderDir, 'dest', 'folder-output-1', 'console-panel.css'),
+                consolePanelJsGlob1     = path.join(testCopyFilesFromParentFolderDir, 'dest', 'folder-output-1', 'console-panel.js'),
+                consolePanelCssGlob1    = path.join(testCopyFilesFromParentFolderDir, 'dest', 'folder-output-1', 'console-panel.css'),
 
-                consolePanelJsRegExp2   = path.join(testCopyFilesFromParentFolderDir, 'dest', 'folder-output-2', 'console-panel.js'),
-                consolePanelCssRegExp2  = path.join(testCopyFilesFromParentFolderDir, 'dest', 'folder-output-2', 'console-panel.css');
+                consolePanelJsGlob2     = path.join(testCopyFilesFromParentFolderDir, 'dest', 'folder-output-2', 'console-panel.js'),
+                consolePanelCssGlob2    = path.join(testCopyFilesFromParentFolderDir, 'dest', 'folder-output-2', 'console-panel.css');
 
             shell.exec(
                 path.join(__dirname, '..', 'index.js'),
@@ -150,11 +150,11 @@ describe('package', function() {
                     cwd: cwdToUse
                 },
                 function (exitCode, stdout, stderr) {
-                    expect(file(consolePanelJsRegExp1)).to.equal(file(consolePanelJsOriginal));
-                    expect(file(consolePanelCssRegExp1)).to.equal(file(consolePanelCssOriginal));
+                    expect(file(consolePanelJsGlob1)).to.equal(file(consolePanelJsOriginal));
+                    expect(file(consolePanelCssGlob1)).to.equal(file(consolePanelCssOriginal));
 
-                    expect(file(consolePanelJsRegExp2)).to.equal(file(consolePanelJsOriginal));
-                    expect(file(consolePanelCssRegExp2)).to.equal(file(consolePanelCssOriginal));
+                    expect(file(consolePanelJsGlob2)).to.equal(file(consolePanelJsOriginal));
+                    expect(file(consolePanelCssGlob2)).to.equal(file(consolePanelCssOriginal));
 
                     done();
                 }
