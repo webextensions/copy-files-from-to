@@ -188,7 +188,10 @@ if (module.parent) {
             '',
             chalk.bold('Options:'),
             '     --config <config-file-path>     Path to configuration file',
-            '                                     When unspecified, it looks for copy-files-from-to.cjson / copy-files-from-to.json',
+            '                                     When unspecified, it looks for:',
+            '                                         1) copy-files-from-to.cjson',
+            '                                         2) copy-files-from-to.json',
+            '                                         3) package.json',
             '     --mode <mode-name>              Mode to use for copying the files',
             '                                     When unspecified, it uses "default" mode',
             '     --when-file-exists <operation>  Override "whenFileExists" setting specified in configuration file',
@@ -223,6 +226,8 @@ if (module.parent) {
             configFile = 'copy-files-from-to.cjson';
         } else if (fs.existsSync(path.resolve(cwd, 'copy-files-from-to.json'))) {
             configFile = 'copy-files-from-to.json';
+        } else if (fs.existsSync(path.resolve(cwd, 'package.json'))) {
+            configFile = 'package.json';
         } else {
             logger.error(
                 '\n' +
@@ -253,15 +258,15 @@ if (module.parent) {
     }
 
     var copyFiles = [],
-        settings = {};
+        copyFilesSettings = {};
     try {
         var cjsonData = cjson.parse(cjsonText);
         if (cjsonData instanceof Object) {
             if (Array.isArray(cjsonData.copyFiles)) {
                 copyFiles = cjsonData.copyFiles;
             }
-            if (cjsonData.settings instanceof Object) {
-                settings = cjsonData.settings;
+            if (cjsonData.copyFilesSettings instanceof Object) {
+                copyFilesSettings = cjsonData.copyFilesSettings;
             }
         }
     } catch (e) {
@@ -382,7 +387,7 @@ if (module.parent) {
             ];
         var whenFileExists = paramWhenFileExists;
         if (ARR_WHEN_FILE_EXISTS.indexOf(whenFileExists) === -1) {
-            whenFileExists = settings.whenFileExists;
+            whenFileExists = copyFilesSettings.whenFileExists;
             if (ARR_WHEN_FILE_EXISTS.indexOf(whenFileExists) === -1) {
                 whenFileExists = WHEN_FILE_EXISTS_DO_NOTHING;
             }
@@ -428,7 +433,7 @@ if (module.parent) {
                 if (typeof toMode === 'object' && toMode.uglifyJs !== undefined) {
                     uglify = utils.booleanIntention(toMode.uglifyJs, false);
                 } else {
-                    uglify = utils.booleanIntention(settings.uglifyJs, false);
+                    uglify = utils.booleanIntention(copyFilesSettings.uglifyJs, false);
                 }
             }
 
@@ -536,11 +541,11 @@ if (module.parent) {
                 if (copyFile && copyFile.from) {
                     var entries = function() {
                         if (typeof copyFile.from === 'string' && isGlob(copyFile.from)) {
-                            return fastGlob.sync([copyFile.from], { dot: !settings.ignoreDotFilesAndFolders });
+                            return fastGlob.sync([copyFile.from], { dot: !copyFilesSettings.ignoreDotFilesAndFolders });
                         } else if (copyFile.from.globPatterns) {
                             return fastGlob.sync(
                                 copyFile.from.globPatterns,
-                                Object.assign({ dot: !settings.ignoreDotFilesAndFolders }, copyFile.from.globSettings)
+                                Object.assign({ dot: !copyFilesSettings.ignoreDotFilesAndFolders }, copyFile.from.globSettings)
                             );
                         } else {
                             return null;
@@ -612,7 +617,7 @@ if (module.parent) {
                     cb(e);
                     return;
                 }
-                if (settings.addReferenceToSourceOfOrigin) {
+                if (copyFilesSettings.addReferenceToSourceOfOrigin) {
                     var sourceDetails = intendedFrom;
                     if (uglified) {
                         sourceDetails += (uglified.uglifyCommand || '');

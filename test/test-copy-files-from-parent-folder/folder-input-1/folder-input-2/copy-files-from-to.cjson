@@ -9,7 +9,7 @@
             "to": "../../dest/folder-output-2/"
         }
     ],
-    "settings": {
+    "copyFilesSettings": {
         "whenFileExists": "overwrite"
     }
 }

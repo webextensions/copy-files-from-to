@@ -8,7 +8,7 @@
             }
         }
     ],
-    "settings": {
+    "copyFilesSettings": {
         "whenFileExists": "overwrite"
     }
 }

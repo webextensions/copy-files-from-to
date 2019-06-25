@@ -1,0 +1,21 @@
+{
+    "name": "my-application",
+    "version": "1.0.0",
+    "dependencies": {
+        "jquery": "3.4.0"
+    },
+    "copyFiles": [
+        {
+            "from": "node_modules/jquery/dist/jquery.js",
+            "to": "scripts/jquery/jquery.js"
+        },
+        {
+            "from": "https://raw.githubusercontent.com/webextensions/console-panel/master/src/console-panel.js",
+            "to": "scripts/console-panel/console-panel.js"
+        },
+        {
+            "from": "https://raw.githubusercontent.com/webextensions/console-panel/master/src/console-panel.css",
+            "to": "scripts/console-panel/console-panel.css"
+        }
+    ]
+}

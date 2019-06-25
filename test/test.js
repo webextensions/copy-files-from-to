@@ -160,5 +160,30 @@ describe('package', function() {
                 }
             );
         });
+
+        it('should be able to read copy instructions from package.json file as a fallback', function (done) {
+            var cwdToUse = path.join(__dirname, 'test-copy-instructions-from-package-json');
+
+            rimraf.sync(path.join(cwdToUse, 'scripts'));
+
+            // There are multiple files which are being copied, but we need to test only one of them to verify
+            // if instructions are being read from package.json file
+            var
+                jqueryJsOriginal = path.join(cwdToUse, 'node_modules', 'jquery', 'dist', 'jquery.js'),
+                jqueryJs         = path.join(cwdToUse, 'scripts', 'jquery', 'jquery.js');
+
+            shell.exec(
+                path.join(__dirname, '..', 'index.js'),
+                {
+                    silent: true,
+                    cwd: cwdToUse
+                },
+                function (exitCode, stdout, stderr) {
+                    expect(file(jqueryJs)).to.equal(file(jqueryJsOriginal));
+
+                    done();
+                }
+            );
+        });
     });
 });

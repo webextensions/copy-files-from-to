@@ -14,9 +14,36 @@ $ npm install -g copy-files-from-to
 ```
 
 # How to use
-Create a file, say, `copy-files-from-to.json` or `copy-files-from-to.cjson` [(JSON with comments)](https://github.com/kof/node-cjson) in your project and refer to the following usage examples.
+In your `package.json` file, add the `"copyFiles"` and `"copyFilesSettings"` (optional) instructions as described in this section.
+
+Alternatively, you may create a file, say, `copy-files-from-to.json` or `copy-files-from-to.cjson` [(JSON with comments)](https://github.com/kof/node-cjson) in your project and refer to the following usage examples.
 
 ## Basic usage
+Sample file: [package.json](test/test-copy-instructions-from-package-json/package.json)
+```json
+{
+    "name": "my-application",
+    "version": "1.0.0",
+    "dependencies": {
+        "jquery": "3.4.0"
+    },
+    "copyFiles": [
+        {
+            "from": "node_modules/jquery/dist/jquery.js",
+            "to": "scripts/jquery/jquery.js"
+        },
+        {
+            "from": "https://raw.githubusercontent.com/webextensions/console-panel/master/src/console-panel.js",
+            "to": "scripts/console-panel/console-panel.js"
+        },
+        {
+            "from": "https://raw.githubusercontent.com/webextensions/console-panel/master/src/console-panel.css",
+            "to": "scripts/console-panel/console-panel.css"
+        }
+    ]
+}
+```
+
 Sample file: [copy-file-from-to.json](test/basic-usage/copy-files-from-to.json)
 ```json
 {
@@ -115,7 +142,7 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
             "toFlat": true
         }
     ],
-    "settings": {
+    "copyFilesSettings": {
         "whenFileExists": "notify-about-available-change",
         "uglifyJs": false,
         "addReferenceToSourceOfOrigin": false
@@ -309,10 +336,10 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
             // represent the values of "from", "to" and their "default" or <custom> modes
         ],
 
-        // settings (optional parameter)
+        // copyFilesSettings (optional parameter)
         //     Summary: Settings for the copy files operation
         //     Data type: object
-        "settings": {
+        "copyFilesSettings": {
             // whenFileExists (optional parameter)
             //     Summary: When the file at "to" path already exists, what action should be taken
             //     Data type: string
@@ -362,7 +389,10 @@ Examples:
 
 Options:
      --config <config-file-path>     Path to configuration file
-                                     When unspecified, it looks for copy-files-from-to.cjson / copy-files-from-to.json
+                                     When unspecified, it looks for:
+                                         1) copy-files-from-to.cjson
+                                         2) copy-files-from-to.json
+                                         3) package.json
      --mode <mode-name>              Mode to use for copying the files
                                      When unspecified, it uses "default" mode
      --when-file-exists <operation>  Override "whenFileExists" setting specified in configuration file
