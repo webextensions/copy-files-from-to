@@ -1,3 +1,6 @@
+# Skipping package-lock.json since this is meant to be used as a generic library/package
+package-lock.json
+
 # Logs
 logs
 *.log
