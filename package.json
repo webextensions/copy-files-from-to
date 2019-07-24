@@ -64,6 +64,7 @@
     "note-down": "0.2.3",
     "request": "^2.88.0",
     "uglify-js": "^3.6.0",
+    "unixify": "^1.0.0",
     "yargs": "^13.3.0"
   },
   "devDependencies": {

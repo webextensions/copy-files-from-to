@@ -1,6 +1,7 @@
 # TODO
 
 * Refactor code
+* Check the support for copying files across different partition (w.r.t. executing program) on Windows
 * If the operation attempts to modify a file outside the `process.cwd()`/config-file-directory, then `--unsafe` parameter must be passed
 * Consider adding support for npm modules via https://unpkg.com/
 * Consider adding option to use soft links, rather than copying the files

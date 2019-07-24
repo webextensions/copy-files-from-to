@@ -8,6 +8,7 @@ var async = require('async'),
     mkdirp = require('mkdirp'),
     cjson = require('cjson'),
     _ = require('lodash'),
+    unixify = require('unixify'),
     fastGlob = require('fast-glob'),
     globParent = require('glob-parent'),
     isGlob = require('is-glob'),
@@ -34,7 +35,7 @@ var paramHelp = argv.h || argv.help,
     paramOutdated = argv.outdated,
     paramWhenFileExists = argv.whenFileExists;
 
-var cwd = process.cwd();
+var cwd = unixify(process.cwd());
 
 var utils = {
     // https://github.com/sindresorhus/strip-bom/blob/f01a9435b8e7d31bb2bd757e67436d0a1864db0e/index.js
@@ -72,7 +73,7 @@ var utils = {
         if (utils.isRemoteResource(fullPath)) {
             return fullPath;
         }
-        return path.relative(wrt, fullPath);
+        return unixify(path.relative(wrt, fullPath));
     },
 
     exitWithError: function (e, errMsg) {
@@ -95,7 +96,11 @@ var utils = {
     },
 
     ensureDirectoryExistence: function(dirPath) {
-        var dirname = dirPath[dirPath.length-1] === '/' ? path.normalize(dirPath) : path.dirname(dirPath);
+        var dirname = (
+            dirPath[dirPath.length-1] === '/' ?
+                unixify(path.normalize(dirPath)) :
+                unixify(path.dirname(dirPath))
+        );
         if (!fs.existsSync(dirPath)) {
             try {
                 mkdirp.sync(dirname);
@@ -246,7 +251,7 @@ if (module.parent) {
     } else { // readListFromFile has a relative path
         configFileSource = path.resolve(cwd, configFile);
     }
-    configFileSourceDirectory = path.dirname(configFileSource);
+    configFileSourceDirectory = unixify(path.dirname(configFileSource));
 
     var cjsonText;
     try {
@@ -475,9 +480,9 @@ if (module.parent) {
                             from.forEach( globPart => {
                                 if (typeof globPart === 'string') {
                                     if (globPart.charAt(0) === '!')
-                                        globPatterns.push('!' + path.join(configFileSourceDirectory, globPart.substring(1)));
+                                        globPatterns.push('!' + unixify(path.join(configFileSourceDirectory, globPart.substring(1))));
                                     else
-                                        globPatterns.push(path.join(configFileSourceDirectory, globPart));
+                                        globPatterns.push(unixify(path.join(configFileSourceDirectory, globPart)));
                                 } else {
                                     Object.assign(globSettings, globPart);
                                 }
@@ -487,9 +492,9 @@ if (module.parent) {
                                 globSettings: globSettings,
                             };
                         }
-                        return path.join(configFileSourceDirectory, from);
+                        return unixify(path.join(configFileSourceDirectory, from));
                     }()),
-                    to: path.join(configFileSourceDirectory, to),
+                    to: unixify(path.join(configFileSourceDirectory, to)),
                     toFlat: toFlat,
                     uglify: uglify
                 };
@@ -556,21 +561,25 @@ if (module.parent) {
                             var ob = JSON.parse(JSON.stringify(copyFile));
                             ob.from = entry;
 
-                            var targetTo = path.relative(
-                                path.join(
-                                    configFileSourceDirectory,
-                                    globParent(ob.intendedFrom)
-                                ),
-                                ob.from
+                            var targetTo = unixify(
+                                path.relative(
+                                    path.join(
+                                        configFileSourceDirectory,
+                                        globParent(ob.intendedFrom)
+                                    ),
+                                    ob.from
+                                )
                             );
                             if (copyFile.toFlat) {
                                 var fileName = path.basename(targetTo);
                                 targetTo = fileName;
                             }
 
-                            ob.to = path.join(
-                                ob.to,
-                                targetTo
+                            ob.to = unixify(
+                                path.join(
+                                    ob.to,
+                                    targetTo
+                                )
                             );
                             arr.push(ob);
                         });
@@ -606,7 +615,7 @@ if (module.parent) {
                         if (stats.isDirectory()) {
                             if (typeof intendedFrom === 'string' && !isGlob(intendedFrom)) {
                                 var fileName = path.basename(intendedFrom);
-                                to = path.join(to, fileName);
+                                to = unixify(path.join(to, fileName));
                             }
                         }
                     }
