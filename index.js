@@ -118,7 +118,17 @@ var utils = {
 
     additionalProcessing: function (additionalOptions, code) {
         var needsUglify = additionalOptions.needsUglify;
+        var removeSourceMappingURL = additionalOptions.removeSourceMappingURL;
         var data = {};
+
+        if (removeSourceMappingURL) {
+            // LAZY: This approach is simple enough and seems to work well for the common known cases.
+            //       As and when any issues are encountered, this code can be improved.
+            code = code.split('//# sourceMappingURL=')[0];
+            data.consoleCommand = data.consoleCommand || {};
+            data.consoleCommand.sourceMappingUrl = 'Note: Removed "sourceMappingURL"';
+        }
+
         if (needsUglify) {
             var result = UglifyJS.minify(
                 code,
@@ -137,7 +147,8 @@ var utils = {
             var consoleCommand = 'uglifyjs <source> --compress sequences=false --beautify beautify=false,semicolons=false,comments=some --output <destination>';
 
             data.code = result.code;
-            data.consoleCommand = consoleCommand;
+            data.consoleCommand = data.consoleCommand || {};
+            data.consoleCommand.uglifyJs = consoleCommand;
         } else {
             data.code = code;
         }
@@ -429,6 +440,7 @@ if (module.parent) {
 
             var to = null,
                 skipTo = null,
+                removeSourceMappingURL = null,
                 uglify = null;
             if (typeof copyFile.to === 'string') {
                 to = copyFile.to;
@@ -439,6 +451,12 @@ if (module.parent) {
                 } else {
                     to = toMode.dest;
                     skipTo = !!toMode.skip;
+                }
+
+                if (typeof toMode === 'object' && toMode.removeSourceMappingURL !== undefined) {
+                    removeSourceMappingURL = utils.booleanIntention(toMode.removeSourceMappingURL, false);
+                } else {
+                    removeSourceMappingURL = utils.booleanIntention(copyFilesSettings.removeSourceMappingURL, false);
                 }
 
                 if (typeof toMode === 'object' && toMode.uglifyJs !== undefined) {
@@ -502,6 +520,7 @@ if (module.parent) {
                     }()),
                     to: unixify(path.join(configFileSourceDirectory, to)),
                     toFlat: toFlat,
+                    removeSourceMappingURL: removeSourceMappingURL,
                     uglify: uglify
                 };
             } else {
@@ -601,7 +620,7 @@ if (module.parent) {
             var to = copyFile.to,
                 intendedFrom = copyFile.intendedFrom;
             var contents = options.contents,
-                uglified = options.uglified,
+                consoleCommand = options.consoleCommand,
                 overwriteIfFileAlreadyExists = options.overwriteIfFileAlreadyExists;
 
             utils.ensureDirectoryExistence(to);
@@ -634,8 +653,13 @@ if (module.parent) {
                 }
                 if (copyFilesSettings.addReferenceToSourceOfOrigin) {
                     var sourceDetails = intendedFrom;
-                    if (uglified) {
-                        sourceDetails += (uglified.uglifyCommand || '');
+                    if (consoleCommand) {
+                        if (consoleCommand.sourceMappingUrl) {
+                            sourceDetails += '\n\n' + consoleCommand.sourceMappingUrl;
+                        }
+                        if (consoleCommand.uglifyJs) {
+                            sourceDetails += '\n\n' + consoleCommand.uglifyJs;
+                        }
                     }
 
                     /*
@@ -665,9 +689,11 @@ if (module.parent) {
                     } else {
                         copyFile.encoding = encoding;
                         var needsUglify = copyFile.uglify;
+                        var removeSourceMappingURL = copyFile.removeSourceMappingURL;
 
                         var response = utils.additionalProcessing({
-                            needsUglify: needsUglify
+                            needsUglify: needsUglify,
+                            removeSourceMappingURL: removeSourceMappingURL
                         }, contentsOfFrom);
                         var processedCode = response.code;
 
@@ -694,8 +720,10 @@ if (module.parent) {
 
         var preWriteOperations = function (copyFile, contents, cb) {
             var needsUglify = copyFile.uglify;
+            var removeSourceMappingURL = copyFile.removeSourceMappingURL;
             var response = utils.additionalProcessing({
-                needsUglify: needsUglify
+                needsUglify: needsUglify,
+                removeSourceMappingURL: removeSourceMappingURL
             }, contents);
 
             var processedCode = response.code;
@@ -703,17 +731,19 @@ if (module.parent) {
 
             var data = {};
             data.contentsAfterPreWriteOperations = processedCode;
-            if (needsUglify) {
-                data.uglified = {
-                    uglifyCommand:
-                        '\n' +
-                        '\n$ ' + consoleCommand +
+            if (consoleCommand) {
+                if (consoleCommand.uglifyJs) {
+                    consoleCommand.uglifyJs = (
+                        '$ ' + consoleCommand.uglifyJs +
                         '\n' +
                         '\nWhere:' +
                         '\n    uglifyjs = npm install -g uglify-js@' + packageJson.dependencies['uglify-js'] +
                         '\n    <source> = File ' + copyFile.intendedFrom +
                         '\n    <destination> = File ./' + path.basename(copyFile.intendedTo)
-                };
+                    );
+                }
+
+                data.consoleCommand = consoleCommand;
             }
 
             cb(data);
@@ -765,12 +795,12 @@ if (module.parent) {
 
                     preWriteOperations(copyFile, contentsOfFrom, function (options) {
                         var contentsAfterPreWriteOperations = options.contentsAfterPreWriteOperations,
-                            uglified = options.uglified;
+                            consoleCommand = options.consoleCommand;
                         writeContents(
                             copyFile,
                             {
                                 contents: contentsAfterPreWriteOperations,
-                                uglified: uglified,
+                                consoleCommand: consoleCommand,
                                 overwriteIfFileAlreadyExists: overwriteIfFileAlreadyExists
                             },
                             function (err, avoidedFileOverwrite, finalPath) {
