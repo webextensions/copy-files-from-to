@@ -116,7 +116,7 @@ var utils = {
         }
     },
 
-    doUglify: function (needsUglify, code, cb) {
+    doUglify: function (needsUglify, code) {
         if (needsUglify) {
             var result = UglifyJS.minify(
                 code,
@@ -133,9 +133,14 @@ var utils = {
                 }
             );
             var consoleCommand = 'uglifyjs <source> --compress sequences=false --beautify beautify=false,semicolons=false,comments=some --output <destination>';
-            cb(result.code, consoleCommand);
+            return {
+                code: result.code,
+                consoleCommand: consoleCommand
+            };
         } else {
-            cb(code, null);
+            return {
+                code: code
+            };
         }
     },
 
@@ -660,22 +665,23 @@ if (module.parent) {
                         copyFile.encoding = encoding;
                         var needsUglify = copyFile.uglify;
 
-                        utils.doUglify(needsUglify, contentsOfFrom, function (processedCode) {
-                            if (copyFile.encoding === 'binary') {
-                                // Only run resource-intensive md5 on binary files
-                                if (md5(processedCode) === md5(contentsOfTo)) {
-                                    cb(chalk.gray(' (up to date)'));
-                                } else {
-                                    cb(chalk.yellow(' (md5 update is available)'));
-                                }
+                        var response = utils.doUglify(needsUglify, contentsOfFrom);
+                        var processedCode = response.code;
+
+                        if (copyFile.encoding === 'binary') {
+                            // Only run resource-intensive md5 on binary files
+                            if (md5(processedCode) === md5(contentsOfTo)) {
+                                cb(chalk.gray(' (up to date)'));
                             } else {
-                                if (processedCode === contentsOfTo) {
-                                    cb(chalk.gray(' (up to date)'));
-                                } else {
-                                    cb(chalk.yellow(' (update is available)'));
-                                }
+                                cb(chalk.yellow(' (md5 update is available)'));
                             }
-                        });
+                        } else {
+                            if (processedCode === contentsOfTo) {
+                                cb(chalk.gray(' (up to date)'));
+                            } else {
+                                cb(chalk.yellow(' (update is available)'));
+                            }
+                        }
                     }
                 });
             } else {
@@ -685,28 +691,27 @@ if (module.parent) {
 
         var preWriteOperations = function (copyFile, contents, cb) {
             var needsUglify = copyFile.uglify;
-            utils.doUglify(needsUglify, contents, function (processedCode, consoleCommand) {
-                if (needsUglify) {
-                    cb({
-                        contentsAfterPreWriteOperations: processedCode,
-                        uglified: {
-                            uglifyCommand:
-                                '\n' +
-                                '\n' +
-                                '$ ' + consoleCommand +
-                                '\n' +
-                                '\nWhere:' +
-                                '\n    uglifyjs = npm install -g uglify-js@' + packageJson.dependencies['uglify-js'] +
-                                '\n    <source> = File ' + copyFile.intendedFrom +
-                                '\n    <destination> = File ./' + path.basename(copyFile.intendedTo)
-                        }
-                    });
-                } else {
-                    cb({
-                        contentsAfterPreWriteOperations: processedCode
-                    });
-                }
-            });
+            var response = utils.doUglify(needsUglify, contents);
+
+            var processedCode = response.code;
+            var consoleCommand = response.consoleCommand;
+
+            var data = {};
+            data.contentsAfterPreWriteOperations = processedCode;
+            if (needsUglify) {
+                data.uglified = {
+                    uglifyCommand:
+                        '\n' +
+                        '\n$ ' + consoleCommand +
+                        '\n' +
+                        '\nWhere:' +
+                        '\n    uglifyjs = npm install -g uglify-js@' + packageJson.dependencies['uglify-js'] +
+                        '\n    <source> = File ' + copyFile.intendedFrom +
+                        '\n    <destination> = File ./' + path.basename(copyFile.intendedTo)
+                };
+            }
+
+            cb(data);
         };
 
         var postWriteOperations = function (copyFile, originalContents, contentsAfterPreWriteOperations, config, cb) {
