@@ -144,8 +144,10 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
     ],
     "copyFilesSettings": {
         "whenFileExists": "notify-about-available-change",
+        "removeSourceMappingURL": false,
         "uglifyJs": false,
-        "addReferenceToSourceOfOrigin": false
+        "addReferenceToSourceOfOrigin": false,
+        "ignoreDotFilesAndFolders": true
     }
 }
 ```
@@ -314,6 +316,13 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
                         //     Data type: string
                         "dest": "scripts/index.js.map",
 
+                        // removeSourceMappingURL (optional parameter)
+                        //     Summary: When set to true, any contents after "//# sourceMappingURL=" would be removed before
+                        //              the copy operation
+                        //     Data type: boolean
+                        //     Default value: false
+                        "removeSourceMappingURL": false,
+
                         // uglifyJs (optional parameter)
                         //     Summary: When set to true, this JavaScript file would be uglified before the copy operation
                         //              (via https://www.npmjs.com/package/uglify-js)
@@ -346,6 +355,13 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
             //     Supported values: "do-nothing" / "overwrite" / "notify-about-available-change"
             //     Default value: "do-nothing"
             "whenFileExists": "notify-about-available-change",
+
+            // removeSourceMappingURL (optional parameter)
+            //     Summary: When set to true, any contents after "//# sourceMappingURL=" would be removed before
+            //              the copy operation
+            //     Data type: boolean
+            //     Default value: false
+            "removeSourceMappingURL": false,
 
             // uglifyJs (optional parameter)
             //     Summary: When set to true, the JavaScript files would be uglified before the copy operation
