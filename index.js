@@ -116,7 +116,9 @@ var utils = {
         }
     },
 
-    doUglify: function (needsUglify, code) {
+    additionalProcessing: function (additionalOptions, code) {
+        var needsUglify = additionalOptions.needsUglify;
+        var data = {};
         if (needsUglify) {
             var result = UglifyJS.minify(
                 code,
@@ -133,15 +135,14 @@ var utils = {
                 }
             );
             var consoleCommand = 'uglifyjs <source> --compress sequences=false --beautify beautify=false,semicolons=false,comments=some --output <destination>';
-            return {
-                code: result.code,
-                consoleCommand: consoleCommand
-            };
+
+            data.code = result.code;
+            data.consoleCommand = consoleCommand;
         } else {
-            return {
-                code: code
-            };
+            data.code = code;
         }
+
+        return data;
     },
 
     readContents: function (sourceFullPath, cb) {
@@ -665,7 +666,9 @@ if (module.parent) {
                         copyFile.encoding = encoding;
                         var needsUglify = copyFile.uglify;
 
-                        var response = utils.doUglify(needsUglify, contentsOfFrom);
+                        var response = utils.additionalProcessing({
+                            needsUglify: needsUglify
+                        }, contentsOfFrom);
                         var processedCode = response.code;
 
                         if (copyFile.encoding === 'binary') {
@@ -691,7 +694,9 @@ if (module.parent) {
 
         var preWriteOperations = function (copyFile, contents, cb) {
             var needsUglify = copyFile.uglify;
-            var response = utils.doUglify(needsUglify, contents);
+            var response = utils.additionalProcessing({
+                needsUglify: needsUglify
+            }, contents);
 
             var processedCode = response.code;
             var consoleCommand = response.consoleCommand;
