@@ -50,10 +50,9 @@
   },
   "homepage": "https://github.com/webextensions/copy-files-from-to#readme",
   "dependencies": {
-    "async": "^3.1.1",
+    "async": "^3.2.0",
     "chalk": "^3.0.0",
     "cjson": "^0.5.0",
-    "cp-file": "^7.0.0",
     "fast-glob": "^3.2.2",
     "glob-parent": "^5.1.0",
     "is-glob": "^4.0.1",
