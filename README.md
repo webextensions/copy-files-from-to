@@ -241,7 +241,7 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
                 "to": "example-index.html"
             },
 
-            // Using "from" as an array
+            // Using "from" as an array of glob expressions
             {
                 // from (required parameter)
                 //     Data type: array
@@ -249,6 +249,7 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
                 //           Any strings in the array are used as glob patterns.
                 //           Any objects are used as fast-glob options: (See https://www.npmjs.com/package/fast-glob)
                 "from": [
+                    // The first entry here is also used to figure out the "non-magic parent path" from a glob string
                     // Copy all files from the public folder
                     "public/**/*",
                     // A "!" at the beginning of the pattern will ignore any files matching that pattern

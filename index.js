@@ -586,11 +586,15 @@ if (module.parent) {
                             var ob = JSON.parse(JSON.stringify(copyFile));
                             ob.from = entry;
 
+                            var intendedFrom = ob.intendedFrom;
+                            if (Array.isArray(intendedFrom)) {
+                                intendedFrom = intendedFrom[0];
+                            }
                             var targetTo = unixify(
                                 path.relative(
                                     path.join(
                                         configFileSourceDirectory,
-                                        globParent(ob.intendedFrom)
+                                        globParent(intendedFrom)
                                     ),
                                     ob.from
                                 )
