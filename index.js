@@ -161,6 +161,7 @@ var utils = {
             request(
                 {
                     uri: sourceFullPath,
+                    encoding: null,
                     gzip: true,
                     timeout: 30000
                 },
