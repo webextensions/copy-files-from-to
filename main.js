@@ -23,8 +23,8 @@ var main = function (params) {
     var paramOutdated = params.paramOutdated;
     var paramWhenFileExists = params.paramWhenFileExists;
     var cwd = params.cwd || unixify(process.cwd());
-    var copyFiles = params.copyFiles;
-    var copyFilesSettings = params.copyFilesSettings;
+    var copyFiles = params.copyFiles || [];
+    var copyFilesSettings = params.copyFilesSettings || {};
     var configFileSourceDirectory = params.configFileSourceDirectory || cwd;
     var mode = params.mode || 'default';
 
