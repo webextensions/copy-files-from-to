@@ -25,6 +25,7 @@ var main = function (params) {
     var cwd = params.cwd || unixify(process.cwd());
     var copyFiles = params.copyFiles || [];
     var copyFilesSettings = params.copyFilesSettings || {};
+    var bail = copyFilesSettings.bail || false; // TODO: Document this feature
     var configFileSourceDirectory = params.configFileSourceDirectory || cwd;
     var mode = params.mode || 'default';
 
@@ -521,6 +522,11 @@ var main = function (params) {
                             logger.log(errorMessageCouldNotReadFromSrc + printFrom);
                         } else {
                             logger.log(errorMessageFailedToCopy + printFromToOriginal);
+                            if (bail) {
+                                logger.error(`An error occurred in reading file (From: ${copyFile.from}; To: ${copyFile.to}).`);
+                                logger.error(`Exiting the copy-files-from-to operation with exit code 1 since the "bail" option was set.`);
+                                process.exit(1);
+                            }
                         }
                         cb();
                         return;
@@ -542,6 +548,11 @@ var main = function (params) {
                                 if (err) {
                                     warningsEncountered++;
                                     logger.log(errorMessageFailedToCopy + printFromTo);
+                                    if (bail) {
+                                        logger.error(`An error occurred in writing file (From: ${copyFile.from}; To: ${copyFile.to}).`);
+                                        logger.error(`Exiting the copy-files-from-to operation with exit code 1 since the "bail" option was set.`);
+                                        process.exit(1);
+                                    }
                                     cb();
                                     return;
                                 } else {
