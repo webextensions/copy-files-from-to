@@ -523,7 +523,7 @@ var main = function (params) {
                         } else {
                             logger.log(errorMessageFailedToCopy + printFromToOriginal);
                             if (bail) {
-                                logger.error(`An error occurred in reading file (From: ${copyFile.from}; To: ${copyFile.to}).`);
+                                logger.error(`An error occurred in reading file (From: ${copyFile.from} ; To: ${copyFile.to}).`);
                                 logger.error(`Exiting the copy-files-from-to operation with exit code 1 since the "bail" option was set.`);
                                 process.exit(1);
                             }
@@ -549,7 +549,7 @@ var main = function (params) {
                                     warningsEncountered++;
                                     logger.log(errorMessageFailedToCopy + printFromTo);
                                     if (bail) {
-                                        logger.error(`An error occurred in writing file (From: ${copyFile.from}; To: ${copyFile.to}).`);
+                                        logger.error(`An error occurred in writing file (From: ${copyFile.from} ; To: ${copyFile.to}).`);
                                         logger.error(`Exiting the copy-files-from-to operation with exit code 1 since the "bail" option was set.`);
                                         process.exit(1);
                                     }
