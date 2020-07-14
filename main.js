@@ -176,6 +176,7 @@ var main = function (params) {
                 uglify = null;
             if (typeof copyFile.to === 'string') {
                 to = copyFile.to;
+                uglify = utils.booleanIntention(copyFilesSettings.uglifyJs, false);
             } else {
                 var toMode = copyFile.to[mode] || copyFile.to['default'] || {};
                 if (typeof toMode === 'string') {
