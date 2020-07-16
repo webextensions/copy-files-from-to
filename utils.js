@@ -121,7 +121,7 @@ var utils = {
             );
             var consoleCommand = 'uglifyjs <source> --compress sequences=false --beautify beautify=false,semicolons=false,comments=some --output <destination>';
 
-            data.code = result.code;
+            data.code = result.code || code;
             data.consoleCommand = data.consoleCommand || {};
             data.consoleCommand.uglifyJs = consoleCommand;
         } else {
