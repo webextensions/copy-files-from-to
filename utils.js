@@ -99,14 +99,14 @@ var utils = {
         if (removeSourceMappingURL) {
             // LAZY: This approach is simple enough and seems to work well for the common known cases.
             //       As and when any issues are encountered, this code can be improved.
-            code = code.split('//# sourceMappingURL=')[0];
+            code = String(code).split('//# sourceMappingURL=')[0];
             data.consoleCommand = data.consoleCommand || {};
             data.consoleCommand.sourceMappingUrl = 'Note: Removed "sourceMappingURL"';
         }
 
         if (needsUglify) {
             var result = UglifyJS.minify(
-                code,
+                String(code),
                 // Equivalent to: uglifyjs <source> --compress sequences=false --beautify beautify=false,semicolons=false,comments=some --output <destination>
                 {
                     compress: {
