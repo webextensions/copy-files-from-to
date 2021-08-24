@@ -346,7 +346,11 @@ var main = function (params) {
                             arr.push(ob);
                         });
                     } else {
-                        arr.push(copyFile);
+                        if (copyFile.from.globPatterns) {
+                            // do nothing
+                        } else {
+                            arr.push(copyFile);
+                        }
                     }
                 }
             });
