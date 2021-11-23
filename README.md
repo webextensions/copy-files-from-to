@@ -44,7 +44,7 @@ Sample file: [package.json](test/test-copy-instructions-from-package-json/packag
 }
 ```
 
-Sample file: [copy-file-from-to.json](test/basic-usage/copy-files-from-to.json)
+Sample file: [copy-files-from-to.json](test/basic-usage/copy-files-from-to.json)
 ```json
 {
     "copyFiles": [
