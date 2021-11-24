@@ -1,6 +1,6 @@
 {
   "name": "copy-files-from-to",
-  "version": "3.2.1",
+  "version": "3.2.2",
   "description": "Copy files from one path to another, based on the instructions provided in a configuration file.",
   "main": "index.js",
   "bin": {
