@@ -432,9 +432,9 @@ See [TODO.md](TODO.md)
 
 * Priyank Parashar - [GitHub](https://github.com/paras20xx) | [Twitter](https://twitter.com/paras20xx) | [LinkedIn](https://linkedin.com/in/ParasharPriyank/)
 
-## Connect to us
+## Connect with us
 
-* https://webextensions.org/
+* https://www.webextensions.org/
 * [GitHub](https://github.com/webextensions/live-css-editor)
 * [Twitter](https://twitter.com/webextensions)
 
