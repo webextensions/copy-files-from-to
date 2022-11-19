@@ -114,7 +114,7 @@ var main = function (params) {
                         ],
                         function () {
                             if (resourceSrcContents !== null && resourceLatestContents !== null) {
-                                if (resourceSrcContents === resourceLatestContents) {
+                                if (String(resourceSrcContents) === String(resourceLatestContents)) {
                                     logger.success(' ✓' + chalk.gray(' (Up to date) ' + resourceSrc));
                                 } else {
                                     logger.warn(' 🔃 ("src" is outdated w.r.t. "latest") ' + chalk.gray(resourceSrc));
