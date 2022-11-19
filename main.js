@@ -304,10 +304,14 @@ var main = function (params) {
                 if (copyFile && copyFile.from) {
                     var entries = function() {
                         if (typeof copyFile.from === 'string' && isGlob(copyFile.from)) {
-                            return fastGlob.sync([copyFile.from], { dot: !copyFilesSettings.ignoreDotFilesAndFolders });
+                            // TODO: Find a better way to escape the glob pattern; Ref: https://github.com/webextensions/copy-files-from-to/issues/21
+                            const escapedCopyFileFrom = copyFile.from.replace(/\(/g, '\\(');
+                            return fastGlob.sync([escapedCopyFileFrom], { dot: !copyFilesSettings.ignoreDotFilesAndFolders });
                         } else if (copyFile.from.globPatterns) {
+                            // TODO: Find a better way to escape the glob pattern; Ref: https://github.com/webextensions/copy-files-from-to/issues/21
+                            const escapedCopyFileFromGlobPatterns = copyFile.from.globPatterns.map( globPattern => globPattern.replace(/\(/g, '\\(') );
                             return fastGlob.sync(
-                                copyFile.from.globPatterns,
+                                escapedCopyFileFromGlobPatterns,
                                 Object.assign({ dot: !copyFilesSettings.ignoreDotFilesAndFolders }, copyFile.from.globSettings)
                             );
                         } else {
