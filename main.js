@@ -446,7 +446,7 @@ var main = function (params) {
                                 cb(chalk.yellow(' (md5 update is available)'));
                             }
                         } else {
-                            if (processedCode === contentsOfTo) {
+                            if (String(processedCode) === contentsOfTo) {
                                 cb(chalk.gray(' (up to date)'));
                             } else {
                                 cb(chalk.yellow(' (update is available)'));
