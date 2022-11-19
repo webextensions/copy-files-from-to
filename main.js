@@ -173,10 +173,10 @@ var main = function (params) {
             var to = null,
                 skipTo = null,
                 removeSourceMappingURL = null,
-                uglify = null;
+                minify = null;
             if (typeof copyFile.to === 'string') {
                 to = copyFile.to;
-                uglify = utils.booleanIntention(copyFilesSettings.uglifyJs, false);
+                minify = utils.booleanIntention(copyFilesSettings.minifyJs, false);
             } else {
                 var toMode = copyFile.to[mode] || copyFile.to['default'] || {};
                 if (typeof toMode === 'string') {
@@ -192,10 +192,10 @@ var main = function (params) {
                     removeSourceMappingURL = utils.booleanIntention(copyFilesSettings.removeSourceMappingURL, false);
                 }
 
-                if (typeof toMode === 'object' && toMode.uglifyJs !== undefined) {
-                    uglify = utils.booleanIntention(toMode.uglifyJs, false);
+                if (typeof toMode === 'object' && toMode.minifyJs !== undefined) {
+                    minify = utils.booleanIntention(toMode.minifyJs, false);
                 } else {
-                    uglify = utils.booleanIntention(copyFilesSettings.uglifyJs, false);
+                    minify = utils.booleanIntention(copyFilesSettings.minifyJs, false);
                 }
             }
 
@@ -215,11 +215,11 @@ var main = function (params) {
             if ((typeof from === 'string' || Array.isArray(from)) && typeof to === 'string') {
                 if (!Array.isArray(from) && (from.match(/\.js$/) || to.match(/\.js$/))) {
                     // If "from" or "to" path ends with ".js", that indicates that it is a JS file
-                    // So, retain the uglify setting.
+                    // So, retain the minify setting.
                     // It is a "do nothing" block
                 } else {
-                    // It does not seem to be a JS file. So, don't uglify it.
-                    uglify = false;
+                    // It does not seem to be a JS file. So, don't minify it.
+                    minify = false;
                 }
 
                 return {
@@ -254,7 +254,7 @@ var main = function (params) {
                     to: unixify(path.join(configFileSourceDirectory, to)),
                     toFlat: toFlat,
                     removeSourceMappingURL: removeSourceMappingURL,
-                    uglify: uglify
+                    minify: minify
                 };
             } else {
                 if (
@@ -402,8 +402,8 @@ var main = function (params) {
                         if (consoleCommand.sourceMappingUrl) {
                             sourceDetails += '\n\n' + consoleCommand.sourceMappingUrl;
                         }
-                        if (consoleCommand.uglifyJs) {
-                            sourceDetails += '\n\n' + consoleCommand.uglifyJs;
+                        if (consoleCommand.minifyJs) {
+                            sourceDetails += '\n\n' + consoleCommand.minifyJs;
                         }
                     }
 
@@ -433,29 +433,31 @@ var main = function (params) {
                         warningsEncountered++;
                     } else {
                         copyFile.encoding = encoding;
-                        var needsUglify = copyFile.uglify;
+                        var needsMinify = copyFile.minify;
                         var removeSourceMappingURL = copyFile.removeSourceMappingURL;
 
-                        var response = utils.additionalProcessing({
-                            needsUglify: needsUglify,
-                            removeSourceMappingURL: removeSourceMappingURL
-                        }, contentsOfFrom);
-                        var processedCode = response.code;
+                        (async function () {
+                            var response = await utils.additionalProcessing({
+                                needsMinify: needsMinify,
+                                removeSourceMappingURL: removeSourceMappingURL
+                            }, contentsOfFrom);
+                            var processedCode = response.code;
 
-                        if (copyFile.encoding === 'binary') {
-                            // Only run resource-intensive md5 on binary files
-                            if (md5(processedCode) === md5(contentsOfTo)) {
-                                cb(chalk.gray(' (up to date)'));
+                            if (copyFile.encoding === 'binary') {
+                                // Only run resource-intensive md5 on binary files
+                                if (md5(processedCode) === md5(contentsOfTo)) {
+                                    cb(chalk.gray(' (up to date)'));
+                                } else {
+                                    cb(chalk.yellow(' (md5 update is available)'));
+                                }
                             } else {
-                                cb(chalk.yellow(' (md5 update is available)'));
+                                if (String(processedCode) === contentsOfTo) {
+                                    cb(chalk.gray(' (up to date)'));
+                                } else {
+                                    cb(chalk.yellow(' (update is available)'));
+                                }
                             }
-                        } else {
-                            if (String(processedCode) === contentsOfTo) {
-                                cb(chalk.gray(' (up to date)'));
-                            } else {
-                                cb(chalk.yellow(' (update is available)'));
-                            }
-                        }
+                        })();
                     }
                 });
             } else {
@@ -464,34 +466,37 @@ var main = function (params) {
         };
 
         var preWriteOperations = function (copyFile, contents, cb) {
-            var needsUglify = copyFile.uglify;
+            var needsMinify = copyFile.minify;
             var removeSourceMappingURL = copyFile.removeSourceMappingURL;
-            var response = utils.additionalProcessing({
-                needsUglify: needsUglify,
-                removeSourceMappingURL: removeSourceMappingURL
-            }, contents);
+            (async function () {
+                var response = await utils.additionalProcessing({
+                    needsMinify: needsMinify,
+                    removeSourceMappingURL: removeSourceMappingURL
+                }, contents);
 
-            var processedCode = response.code;
-            var consoleCommand = response.consoleCommand;
+                var processedCode = response.code;
+                var consoleCommand = response.consoleCommand;
 
-            var data = {};
-            data.contentsAfterPreWriteOperations = processedCode;
-            if (consoleCommand) {
-                if (consoleCommand.uglifyJs) {
-                    consoleCommand.uglifyJs = (
-                        '$ ' + consoleCommand.uglifyJs +
-                        '\n' +
-                        '\nWhere:' +
-                        '\n    uglifyjs = npm install -g uglify-js@' + packageJson.dependencies['uglify-js'] +
-                        '\n    <source> = File ' + copyFile.intendedFrom +
-                        '\n    <destination> = File ./' + path.basename(copyFile.intendedTo)
-                    );
+                var data = {};
+                data.contentsAfterPreWriteOperations = processedCode;
+                if (consoleCommand) {
+                    if (consoleCommand.minifyJs) {
+                        consoleCommand.minifyJs = (
+                            '$ ' + consoleCommand.minifyJs +
+                            '\n' +
+                            '\nWhere:' +
+                            '\n    terser = npm install -g terser@' + packageJson.dependencies['terser'] +
+                            '\n    <source> = File ' + copyFile.intendedFrom +
+                            '\n    <destination> = File ./' + path.basename(copyFile.intendedTo) +
+                            '\n'
+                        );
+                    }
+
+                    data.consoleCommand = consoleCommand;
                 }
 
-                data.consoleCommand = consoleCommand;
-            }
-
-            cb(data);
+                cb(data);
+            })();
         };
 
         var postWriteOperations = function (copyFile, originalContents, contentsAfterPreWriteOperations, config, cb) {

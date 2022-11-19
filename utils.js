@@ -3,7 +3,7 @@ var path = require('path'),
 
 var axios = require('axios'),
     mkdirp = require('mkdirp'),
-    UglifyJS = require('uglify-js'),
+    { minify: minifyViaTerser } = require('terser'),
     isUtf8 = require('is-utf8');
 
 var unixify = require('unixify');
@@ -91,8 +91,8 @@ var utils = {
         }
     },
 
-    additionalProcessing: function (additionalOptions, code) {
-        var needsUglify = additionalOptions.needsUglify;
+    additionalProcessing: async function (additionalOptions, code) {
+        var needsMinify = additionalOptions.needsMinify;
         var removeSourceMappingURL = additionalOptions.removeSourceMappingURL;
         var data = {};
 
@@ -104,26 +104,47 @@ var utils = {
             data.consoleCommand.sourceMappingUrl = 'Note: Removed "sourceMappingURL"';
         }
 
-        if (needsUglify) {
-            var result = UglifyJS.minify(
+        if (needsMinify) {
+            var result = await minifyViaTerser(
                 String(code),
-                // Equivalent to: uglifyjs <source> --compress sequences=false --beautify beautify=false,semicolons=false,comments=some --output <destination>
+                // Equivalent to: terser <source> --compress sequences=false --format semicolons=false --output <destination>
                 {
                     compress: {
                         sequences: false
                     },
                     mangle: false,
-                    output: {
+                    format: {
                         semicolons: false,
-                        comments: 'some'
+                        comments: function (_, comment) {
+                            if (
+                                comment.value.charAt(0) === '!' ||
+                                /cc_on|copyright|license|preserve/i.test(comment.value)
+                            ) {
+                                return true;
+                            } else {
+                                return false;
+                            }
+
+                            // if (comment.type === 'comment2') { // multiline comment
+                            //     return /@preserve|@license|@cc_on/i.test(comment.value);
+                            // } else if (comment.type === 'comment1') { // single line comment
+                            //     if (comment.value.indexOf('!') === 0) {
+                            //         return true;
+                            //     } else {
+                            //         return /@preserve|@license|@cc_on/i.test(comment.value);
+                            //     }
+                            // } else {
+                            //     return false;
+                            // }
+                        }
                     }
                 }
             );
-            var consoleCommand = 'uglifyjs <source> --compress sequences=false --beautify beautify=false,semicolons=false,comments=some --output <destination>';
+            var consoleCommand = 'terser <source> --compress sequences=false --format semicolons=false --output <destination>';
 
             data.code = result.code || code;
             data.consoleCommand = data.consoleCommand || {};
-            data.consoleCommand.uglifyJs = consoleCommand;
+            data.consoleCommand.minifyJs = consoleCommand;
         } else {
             data.code = code;
         }
@@ -140,7 +161,6 @@ var utils = {
                 timeout: 30000
             })
                 .then(function (response) {
-                    debugger;
                     if (response.status === 200) {
                         cb(null, response.data, 'remote');
                     } else {

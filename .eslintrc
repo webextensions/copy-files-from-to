@@ -3,7 +3,7 @@
     // https://gist.github.com/cletusw/e01a85e399ab563b1236
     "env": {
         "browser": false,
-        "es6": true,
+        "es2022": true,
         "node": true
     },
     "extends": "eslint:recommended",

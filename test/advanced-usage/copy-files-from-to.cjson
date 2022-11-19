@@ -75,7 +75,7 @@
     "copyFilesSettings": {
         "whenFileExists": "notify-about-available-change",
         "removeSourceMappingURL": false,
-        "uglifyJs": false,
+        "minifyJs": false,
         "addReferenceToSourceOfOrigin": false,
         "ignoreDotFilesAndFolders": true
     }

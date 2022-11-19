@@ -145,7 +145,7 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
     "copyFilesSettings": {
         "whenFileExists": "notify-about-available-change",
         "removeSourceMappingURL": false,
-        "uglifyJs": false,
+        "minifyJs": false,
         "addReferenceToSourceOfOrigin": false,
         "ignoreDotFilesAndFolders": true
     }
@@ -324,12 +324,12 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
                         //     Default value: false
                         "removeSourceMappingURL": false,
 
-                        // uglifyJs (optional parameter)
-                        //     Summary: When set to true, this JavaScript file would be uglified before the copy operation
-                        //              (via https://www.npmjs.com/package/uglify-js)
+                        // minifyJs (optional parameter)
+                        //     Summary: When set to true, this JavaScript file would be minified before the copy operation
+                        //              (via https://www.npmjs.com/package/terser)
                         //     Data type: boolean
                         //     Default value: undefined
-                        "uglifyJs": false
+                        "minifyJs": false
                     },
                     "production": {
                         // skip (required parameter, when not using "dest" parameter)
@@ -364,12 +364,12 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
             //     Default value: false
             "removeSourceMappingURL": false,
 
-            // uglifyJs (optional parameter)
+            // minifyJs (optional parameter)
             //     Summary: When set to true, the JavaScript files would be uglified before the copy operation
-            //              (via https://www.npmjs.com/package/uglify-js)
+            //              (via https://www.npmjs.com/package/terser)
             //     Data type: boolean
             //     Default value: false
-            "uglifyJs": false,
+            "minifyJs": false,
 
             // addReferenceToSourceOfOrigin (optional parameter)
             //     Summary: When set to true, the copy operation would create a file "<to-file-path>.source.txt"
