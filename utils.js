@@ -1,7 +1,7 @@
 var path = require('path'),
     fs = require('fs');
 
-var request = require('request'),
+var axios = require('axios'),
     mkdirp = require('mkdirp'),
     UglifyJS = require('uglify-js'),
     isUtf8 = require('is-utf8');
@@ -133,25 +133,23 @@ var utils = {
 
     readContents: function (sourceFullPath, cb) {
         if (utils.isRemoteResource(sourceFullPath)) {
-            request(
-                {
-                    uri: sourceFullPath,
-                    encoding: null,
-                    gzip: true,
-                    timeout: 30000
-                },
-                function (err, response, body) {
-                    if (err) {
-                        cb(err);
+            axios({
+                method: 'get',
+                url: sourceFullPath,
+                responseType: 'arraybuffer',
+                timeout: 30000
+            })
+                .then(function (response) {
+                    debugger;
+                    if (response.status === 200) {
+                        cb(null, response.data, 'remote');
                     } else {
-                        if (response.statusCode === 200) {
-                            cb(null, body, 'remote');
-                        } else {
-                            cb('Unexpected statusCode (' + response.statusCode + ') for response of: ' + sourceFullPath);
-                        }
+                        cb('Unexpected statusCode (' + response.status + ') for response of: ' + sourceFullPath);
                     }
-                }
-            );
+                })
+                .catch(function (err) {
+                    cb(err);
+                });
         } else {
             try {
                 var rawContents = fs.readFileSync(sourceFullPath);
