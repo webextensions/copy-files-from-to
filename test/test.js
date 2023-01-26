@@ -46,7 +46,7 @@ describe('package', function() {
                     silent: true,
                     cwd: basicUsageDir
                 },
-                function (exitCode, stdout, stderr) {
+                function (exitCode, stdout, stderr) { // eslint-disable-line no-unused-vars
                     expect(file(jqueryJs)).to.equal(file(jqueryJsOriginal));
                     expect(file(consolePanelJs)).to.equal(file(consolePanelJsOriginal));
                     expect(file(consolePanelCss)).to.equal(file(consolePanelCssOriginal));
@@ -87,7 +87,7 @@ describe('package', function() {
                     silent: true,
                     cwd: advancedUsageDir
                 },
-                function (exitCode, stdout, stderr) {
+                function (exitCode, stdout, stderr) { // eslint-disable-line no-unused-vars
                     expect(file(underscoreJs)).to.equal(file(underscoreJsOriginal));
                     expect(file(consolePanelJs)).to.equal(file(consolePanelJsOriginal));
 
@@ -119,7 +119,7 @@ describe('package', function() {
                     silent: true,
                     cwd: dirToUse
                 },
-                function (exitCode, stdout, stderr) {
+                function (exitCode, stdout, stderr) { // eslint-disable-line no-unused-vars
                     expect(file(underscoreJsMap)).to.equal(file(underscoreJsMapOriginal));
 
                     done();
@@ -149,7 +149,7 @@ describe('package', function() {
                     silent: true,
                     cwd: cwdToUse
                 },
-                function (exitCode, stdout, stderr) {
+                function (exitCode, stdout, stderr) { // eslint-disable-line no-unused-vars
                     expect(file(consolePanelJsGlob1)).to.equal(file(consolePanelJsOriginal));
                     expect(file(consolePanelCssGlob1)).to.equal(file(consolePanelCssOriginal));
 
@@ -178,7 +178,7 @@ describe('package', function() {
                     silent: true,
                     cwd: cwdToUse
                 },
-                function (exitCode, stdout, stderr) {
+                function (exitCode, stdout, stderr) { // eslint-disable-line no-unused-vars
                     expect(file(jqueryJs)).to.equal(file(jqueryJsOriginal));
 
                     done();
