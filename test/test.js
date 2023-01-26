@@ -185,5 +185,41 @@ describe('package', function() {
                 }
             );
         });
+
+        it('should be able to copy a directory', function (done) {
+            const testCopyDirectory = path.join(__dirname, 'test-copy-directory');
+            const cwdToUse = testCopyDirectory;
+
+            rimrafSync(path.join(cwdToUse, 'target-dir'));
+
+            const
+                dir1File1Source  = path.join(testCopyDirectory, 'source-dir', 'dir1', 'file1.txt'),
+                dir1File2Source  = path.join(testCopyDirectory, 'source-dir', 'dir1', 'file2.txt'),
+                dir2File1Source  = path.join(testCopyDirectory, 'source-dir', 'dir2', 'file1.txt'),
+                dir2File2Source  = path.join(testCopyDirectory, 'source-dir', 'dir2', 'file2.txt');
+
+            const
+                dir1File1Target = path.join(testCopyDirectory, 'target-dir', 'dir1', 'file1.txt'),
+                dir1File2Target = path.join(testCopyDirectory, 'target-dir', 'dir1', 'file2.txt'),
+                dir2File1Target = path.join(testCopyDirectory, 'target-dir', 'dir2', 'file1.txt'),
+                dir2File2Target = path.join(testCopyDirectory, 'target-dir', 'dir2', 'file2.txt');
+
+            shell.exec(
+                path.join(__dirname, '..', 'index.js'),
+                {
+                    silent: true,
+                    cwd: cwdToUse
+                },
+                function (exitCode, stdout, stderr) { // eslint-disable-line no-unused-vars
+                    expect(file(dir1File1Target)).to.equal(file(dir1File1Source));
+                    expect(file(dir1File2Target)).to.equal(file(dir1File2Source));
+
+                    expect(file(dir2File1Target)).to.equal(file(dir2File1Source));
+                    expect(file(dir2File2Target)).to.equal(file(dir2File2Source));
+
+                    done();
+                }
+            );
+        });
     });
 });

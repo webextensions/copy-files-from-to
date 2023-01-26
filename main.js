@@ -303,6 +303,21 @@ var main = function (params) {
             copyFiles.forEach(function (copyFile) {
                 if (copyFile && copyFile.from) {
                     var entries = function() {
+                        if (
+                            typeof copyFile.from === 'string' &&
+                            !utils.isRemoteResource(copyFile.from)
+                        ) {
+                            // https://stackoverflow.com/questions/15630770/node-js-check-if-path-is-file-or-directory/15630832#15630832
+                            const flagDirExists = (
+                                fs.existsSync(copyFile.from) &&
+                                fs.lstatSync(copyFile.from).isDirectory()
+                            );
+                            if (flagDirExists) {
+                                copyFile.from = path.resolve(copyFile.from, '**/*');
+                                copyFile.flagFromIsDirectory = true;
+                            }
+                        }
+
                         if (typeof copyFile.from === 'string' && isGlob(copyFile.from)) {
                             // TODO: Find a better way to escape the glob pattern; Ref: https://github.com/webextensions/copy-files-from-to/issues/21
                             const escapedCopyFileFrom = copyFile.from.replace(/\(/g, '\\(');
@@ -336,6 +351,9 @@ var main = function (params) {
                                     ob.from
                                 )
                             );
+                            if (ob.flagFromIsDirectory) {
+                                targetTo = path.relative(path.join(path.dirname(targetTo),'..'), targetTo);
+                            }
                             if (copyFile.toFlat) {
                                 var fileName = path.basename(targetTo);
                                 targetTo = fileName;

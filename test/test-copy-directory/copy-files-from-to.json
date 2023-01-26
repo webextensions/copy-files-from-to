@@ -1,0 +1,8 @@
+{
+    "copyFiles": [
+        {
+            "from": "source-dir",
+            "to": "target-dir"
+        }
+    ]
+}
