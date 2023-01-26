@@ -12,7 +12,7 @@ chai.use(chaiFiles);
 var expect = chai.expect;
 var file = chaiFiles.file;
 
-var rimraf = require("rimraf");
+var { rimrafSync } = require('rimraf');
 
 var copyFilesFromTo = require('../index.js');       // eslint-disable-line no-unused-vars
 
@@ -28,7 +28,7 @@ describe('package', function() {
         it('should be able to copy files from a json config', function (done) {
             var basicUsageDir = path.join(__dirname, 'basic-usage');
 
-            rimraf.sync(path.join(basicUsageDir, 'scripts'));
+            rimrafSync(path.join(basicUsageDir, 'scripts'));
 
             var
                 consolePanelJsOriginal  = path.join(basicUsageDir, 'expected-output', 'scripts', 'console-panel', 'console-panel.js'),
@@ -59,8 +59,8 @@ describe('package', function() {
         it('should be able to copy files from a cjson config', function (done) {
             var advancedUsageDir = path.join(__dirname, 'advanced-usage');
 
-            rimraf.sync(path.join(advancedUsageDir, 'public'));
-            rimraf.sync(path.join(advancedUsageDir, 'scripts'));
+            rimrafSync(path.join(advancedUsageDir, 'public'));
+            rimrafSync(path.join(advancedUsageDir, 'scripts'));
 
             var
                 underscoreJsOriginal   = path.join(advancedUsageDir, 'expected-output', 'scripts', 'underscore.js'),
@@ -107,7 +107,7 @@ describe('package', function() {
         it('should be able to copy a file in custom mode', function (done) {
             var dirToUse = path.join(__dirname, 'test-copy-file-in-custom-mode');
 
-            rimraf.sync(path.join(dirToUse, 'scripts'));
+            rimrafSync(path.join(dirToUse, 'scripts'));
 
             var
                 underscoreJsMapOriginal = path.join(dirToUse, 'expected-output', 'scripts', 'underscore.js.map'),
@@ -131,7 +131,7 @@ describe('package', function() {
             var testCopyFilesFromParentFolderDir = path.join(__dirname, 'test-copy-files-from-parent-folder');
             var cwdToUse = path.join(testCopyFilesFromParentFolderDir, 'folder-input-1', 'folder-input-2');
 
-            rimraf.sync(path.join(testCopyFilesFromParentFolderDir, 'dest'));
+            rimrafSync(path.join(testCopyFilesFromParentFolderDir, 'dest'));
 
             var
                 consolePanelJsOriginal  = path.join(testCopyFilesFromParentFolderDir, 'code', 'console-panel.js'),
@@ -164,7 +164,7 @@ describe('package', function() {
         it('should be able to read copy instructions from package.json file as a fallback', function (done) {
             var cwdToUse = path.join(__dirname, 'test-copy-instructions-from-package-json');
 
-            rimraf.sync(path.join(cwdToUse, 'scripts'));
+            rimrafSync(path.join(cwdToUse, 'scripts'));
 
             // There are multiple files which are being copied, but we need to test only one of them to verify
             // if instructions are being read from package.json file
