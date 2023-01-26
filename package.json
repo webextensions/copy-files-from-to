@@ -1,78 +1,78 @@
 {
-  "name": "copy-files-from-to",
-  "version": "3.6.0",
-  "description": "Copy files from one path to another, based on the instructions provided in a configuration file.",
-  "main": "index.js",
-  "bin": {
-    "copy-files-from-to": "./index.js"
-  },
-  "directories": {
-    "test": "test"
-  },
-  "scripts": {
-    "lint": "eslint .",
-    "start": "node index.js",
-    "mocha": "mocha",
-    "mocha:inspect-brk": "mocha --inspect-brk",
-    "test": "npm run lint && npm run mocha"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/webextensions/copy-files-from-to.git"
-  },
-  "keywords": [
-    "copy",
-    "file",
-    "files",
-    "from",
-    "one",
-    "path",
-    "to",
-    "another",
-    "folder",
-    "directory",
-    "create",
-    "instructions",
-    "configuration",
-    "node_modules",
-    "request",
-    "http",
-    "https",
-    "remote",
-    "url",
-    "resource",
-    "source",
-    "code"
-  ],
-  "author": "Priyank Parashar",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/webextensions/copy-files-from-to/issues"
-  },
-  "homepage": "https://github.com/webextensions/copy-files-from-to#readme",
-  "dependencies": {
-    "async": "^3.2.4",
-    "axios": "^1.2.4",
-    "chalk": "=4.1.2",
-    "cjson": "^0.5.0",
-    "fast-glob": "^3.2.12",
-    "glob-parent": "^6.0.2",
-    "is-glob": "^4.0.3",
-    "is-utf8": "^0.2.1",
-    "lodash": "^4.17.21",
-    "md5": "^2.3.0",
-    "mkdirp": "^2.1.3",
-    "note-down": "0.2.3",
-    "terser": "^5.16.1",
-    "unixify": "^1.0.0",
-    "yargs": "^17.6.2"
-  },
-  "devDependencies": {
-    "chai": "^4.3.7",
-    "chai-files": "^1.4.0",
-    "eslint": "^8.32.0",
-    "mocha": "^10.2.0",
-    "rimraf": "^4.1.2",
-    "shelljs": "^0.8.5"
-  }
+    "name": "copy-files-from-to",
+    "version": "3.6.0",
+    "description": "Copy files from one path to another, based on the instructions provided in a configuration file.",
+    "main": "index.js",
+    "bin": {
+        "copy-files-from-to": "./index.js"
+    },
+    "directories": {
+        "test": "test"
+    },
+    "scripts": {
+        "lint": "eslint .",
+        "start": "node index.js",
+        "mocha": "mocha",
+        "mocha:inspect-brk": "mocha --inspect-brk",
+        "test": "npm run lint && npm run mocha"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/webextensions/copy-files-from-to.git"
+    },
+    "keywords": [
+        "copy",
+        "file",
+        "files",
+        "from",
+        "one",
+        "path",
+        "to",
+        "another",
+        "folder",
+        "directory",
+        "create",
+        "instructions",
+        "configuration",
+        "node_modules",
+        "request",
+        "http",
+        "https",
+        "remote",
+        "url",
+        "resource",
+        "source",
+        "code"
+    ],
+    "author": "Priyank Parashar",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/webextensions/copy-files-from-to/issues"
+    },
+    "homepage": "https://github.com/webextensions/copy-files-from-to#readme",
+    "dependencies": {
+        "async": "^3.2.4",
+        "axios": "^1.2.4",
+        "chalk": "=4.1.2",
+        "cjson": "^0.5.0",
+        "fast-glob": "^3.2.12",
+        "glob-parent": "^6.0.2",
+        "is-glob": "^4.0.3",
+        "is-utf8": "^0.2.1",
+        "lodash": "^4.17.21",
+        "md5": "^2.3.0",
+        "mkdirp": "^2.1.3",
+        "note-down": "0.2.3",
+        "terser": "^5.16.1",
+        "unixify": "^1.0.0",
+        "yargs": "^17.6.2"
+    },
+    "devDependencies": {
+        "chai": "^4.3.7",
+        "chai-files": "^1.4.0",
+        "eslint": "^8.32.0",
+        "mocha": "^10.2.0",
+        "rimraf": "^4.1.2",
+        "shelljs": "^0.8.5"
+    }
 }
