@@ -135,6 +135,12 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
             "to": "public/assets"
         },
 
+        // Copy the file at the mentioned path into the target directory
+        {
+            "from": "src/app/images/favicon.ico",
+            "to": "public/"
+        },
+
         // Copy the files matching the "glob" pattern (matching files, along with the their folder structure go into the "to" directory)
         {
             "from": "assets/**/*.jpg",

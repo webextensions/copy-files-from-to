@@ -251,7 +251,11 @@ var main = function (params) {
                         }
                         return unixify(path.join(configFileSourceDirectory, from));
                     }()),
-                    to: unixify(path.join(configFileSourceDirectory, to)),
+                    to: (
+                        (to.charAt(to.length - 1) === '/') ?
+                            unixify(path.join(configFileSourceDirectory, to)) + '/' :
+                            unixify(path.join(configFileSourceDirectory, to))
+                    ),
                     toFlat: toFlat,
                     removeSourceMappingURL: removeSourceMappingURL,
                     minify: minify
@@ -378,6 +382,16 @@ var main = function (params) {
             });
             return arr;
         }());
+
+        copyFiles = copyFiles.map((copyFile) => {
+            if (
+                copyFile.to.charAt(copyFile.to.length - 1) === '/' &&
+                !isGlob(copyFile.intendedFrom)
+            ) {
+                copyFile.to = path.join(copyFile.to, path.basename(copyFile.from));
+            }
+            return copyFile;
+        });
 
         var writeContents = function (copyFile, options, cb) {
             var to = copyFile.to,

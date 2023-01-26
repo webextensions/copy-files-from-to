@@ -1,0 +1,20 @@
+{
+    "copyFiles": [
+        {
+            "from": "source-dir/file1.txt",
+            "to": "target-dir/"
+        },
+        {
+            "from": "source-dir/file2.*",
+            "to": "target-dir/"
+        },
+        {
+            "from": "source-dir/*.md",
+            "to": "target-dir/"
+        },
+        {
+            "from": "https://raw.githubusercontent.com/webextensions/console-panel/v1.0.3/src/console-panel.js",
+            "to": "target-dir/remote/"
+        }
+    ]
+}

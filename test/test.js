@@ -221,5 +221,45 @@ describe('package', function() {
                 }
             );
         });
+
+        it('should be able to copy files to a directory', function (done) {
+            const testDir = path.join(__dirname, 'test-copy-files-to-a-directory');
+            const cwdToUse = testDir;
+
+            rimrafSync(path.join(cwdToUse, 'target-dir'));
+
+            const
+                file1TxtSource  = path.join(testDir, 'source-dir', 'file1.txt'),
+                file2TxtSource  = path.join(testDir, 'source-dir', 'file2.txt'),
+                readme1MdSource  = path.join(testDir, 'source-dir', 'readme1.md'),
+                readme2MdSource  = path.join(testDir, 'source-dir', 'readme2.md'),
+                webFileSource = path.join(testDir, 'expected-output', 'console-panel.js');
+
+            const
+                file1TxtTarget = path.join(testDir, 'target-dir', 'file1.txt'),
+                file2TxtTarget = path.join(testDir, 'target-dir', 'file2.txt'),
+                readme1MdTarget = path.join(testDir, 'target-dir', 'readme1.md'),
+                readme2MdTarget = path.join(testDir, 'target-dir', 'readme2.md'),
+                webFileTarget = path.join(testDir, 'target-dir', 'remote', 'console-panel.js');
+
+            shell.exec(
+                path.join(__dirname, '..', 'index.js'),
+                {
+                    silent: true,
+                    cwd: cwdToUse
+                },
+                function (exitCode, stdout, stderr) { // eslint-disable-line no-unused-vars
+                    expect(file(file1TxtTarget)).to.equal(file(file1TxtSource));
+                    expect(file(file2TxtTarget)).to.equal(file(file2TxtSource));
+
+                    expect(file(readme1MdTarget)).to.equal(file(readme1MdSource));
+                    expect(file(readme2MdTarget)).to.equal(file(readme2MdSource));
+
+                    expect(file(webFileTarget)).to.equal(file(webFileSource));
+
+                    done();
+                }
+            );
+        });
     });
 });
