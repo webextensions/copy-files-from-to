@@ -535,7 +535,7 @@ var main = function (params) {
                         if (destFileExists && notifyAboutAvailableChange) {
                             logger.log(errorMessageCouldNotReadFromSrc + printFrom);
                         } else {
-                            logger.log(errorMessageFailedToCopy + printFromToOriginal);
+                            logger.log(errorMessageFailedToCopy + printFrom + ' to' + printFromToOriginal);
                             if (bail) {
                                 logger.error(`An error occurred in reading file (From: ${copyFile.from} ; To: ${copyFile.to}).`);
                                 logger.error(`Exiting the copy-files-from-to operation with exit code 1 since the "bail" option was set.`);
