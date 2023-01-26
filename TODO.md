@@ -14,4 +14,4 @@
 * Add `--silent` option
 * Consider adding support to auto convert GitHub links to raw content links
 * Consider adding support for `bower.json`
-* Write test-cases
+* Write more test-cases
