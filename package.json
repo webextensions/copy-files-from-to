@@ -13,6 +13,7 @@
     "lint": "eslint .",
     "start": "node index.js",
     "mocha": "mocha",
+    "mocha:inspect-brk": "mocha --inspect-brk",
     "test": "npm run lint && npm run mocha"
   },
   "repository": {
