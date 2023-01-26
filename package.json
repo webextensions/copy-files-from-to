@@ -9,6 +9,19 @@
     "directories": {
         "test": "test"
     },
+    "files": [
+        ".editorconfig",
+        ".eslintignore",
+        ".eslintrc",
+        ".nvmrc",
+        "index.js",
+        "LICENSE",
+        "main.js",
+        "package.json",
+        "README.md",
+        "TODO.md",
+        "utils.js"
+    ],
     "scripts": {
         "lint": "eslint .",
         "start": "node index.js",
