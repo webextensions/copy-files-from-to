@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+// To debug:
+//     $ node --inspect-brk ./index.js --config test/<test-name>/copy-files-from-to.json
+
 var path = require('path'),
     fs = require('fs');
 
