@@ -10,8 +10,7 @@
 * Add `--clean` option (to "Delete the files mentioned in `"to"` entries (for all modes)")
   * Also add an option to "clean empty directories"
 * Add support for loading `.js` files as configuration
-* Add more logging when running with `--verbose` option
-* Add `--silent` option
+* Add even more logging when running with `--verbose` option
 * Consider adding support to auto convert GitHub links to raw content links
 * Consider adding support for `bower.json`
 * Write more test-cases

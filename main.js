@@ -10,13 +10,11 @@ var async = require('async'),
 
 var unixify = require('unixify');
 
-var logger = require('note-down');
-logger.removeOption('showLogLine');
+var utils = require('./utils.js');
+const logger = utils.logger;
 var chalk = logger.chalk;
 
 var packageJson = require('./package.json');
-
-var utils = require('./utils.js');
 
 var main = function (params) {
     var paramVerbose = params.paramVerbose;
@@ -565,9 +563,9 @@ var main = function (params) {
                     if (err) {
                         warningsEncountered++;
                         if (destFileExists && notifyAboutAvailableChange) {
-                            logger.log(errorMessageCouldNotReadFromSrc + printFrom);
+                            logger.error(errorMessageCouldNotReadFromSrc + printFrom);
                         } else {
-                            logger.log(errorMessageFailedToCopy + printFrom + ' to' + printFromToOriginal);
+                            logger.error(errorMessageFailedToCopy + printFrom + ' to' + printFromToOriginal);
                             if (bail) {
                                 logger.error(`An error occurred in reading file (From: ${copyFile.from} ; To: ${copyFile.to}).`);
                                 logger.error(`Exiting the copy-files-from-to operation with exit code 1 since the "bail" option was set.`);
@@ -593,7 +591,7 @@ var main = function (params) {
                             function (err, avoidedFileOverwrite, finalPath) {
                                 if (err) {
                                     warningsEncountered++;
-                                    logger.log(errorMessageFailedToCopy + printFromTo);
+                                    logger.error(errorMessageFailedToCopy + printFromTo);
                                     if (bail) {
                                         logger.error(`An error occurred in writing file (From: ${copyFile.from} ; To: ${copyFile.to}).`);
                                         logger.error(`Exiting the copy-files-from-to operation with exit code 1 since the "bail" option was set.`);

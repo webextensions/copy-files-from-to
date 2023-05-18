@@ -8,11 +8,14 @@ var axios = require('axios'),
 
 var unixify = require('unixify');
 
-var logger = require('note-down');
+var { createNoteDownInstance } = require('note-down');
+const logger = createNoteDownInstance();
 logger.removeOption('showLogLine');
 var chalk = logger.chalk;
 
 var utils = {
+    logger,
+
     // https://github.com/sindresorhus/strip-bom/blob/f01a9435b8e7d31bb2bd757e67436d0a1864db0e/index.js
     // Catches EFBBBF (UTF-8 BOM) because the buffer-to-string
     // conversion translates it to FEFF (UTF-16 BOM)

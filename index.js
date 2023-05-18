@@ -9,8 +9,8 @@ var path = require('path'),
 var unixify = require('unixify');
 var cjson = require('cjson');
 
-var logger = require('note-down');
-logger.removeOption('showLogLine');
+var utils = require('./utils.js');
+const logger = utils.logger;
 var chalk = logger.chalk;
 
 var argv = require('yargs')
@@ -18,12 +18,12 @@ var argv = require('yargs')
     .version(false)
     .argv;
 
-var utils = require('./utils.js');
 var main = require('./main.js');
 
 var paramHelp = argv.h || argv.help,
     paramVersion = argv.v || argv.version,
     paramVerbose = argv.verbose,
+    paramSilent = argv.silent,
     paramOutdated = argv.outdated,
     paramWhenFileExists = argv.whenFileExists;
 
@@ -32,6 +32,12 @@ var packageJson = require('./package.json');
 var nodeVersion = process.versions.node;
 
 var cwd = unixify(process.cwd());
+
+if (paramSilent) {
+    logger.log = function () {};
+    logger.info = function () {};
+    logger.success = function () {};
+}
 
 if (!module.parent) {
     var showHelp = function () {
@@ -60,6 +66,7 @@ if (!module.parent) {
             '     --outdated                      Notify about outdated parts of the configuration file',
             '                                     (takes cue from "latest" property, wherever specified)',
             '     --verbose                       Verbose logging',
+            '     --silent                        Reduced logging (log only warnings and errors)',
             '  -v --version                       Output the version number',
             '  -h --help                          Show help',
             ''

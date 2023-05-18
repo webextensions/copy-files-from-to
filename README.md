@@ -429,6 +429,7 @@ Options:
      --outdated                      Notify about outdated parts of the configuration file
                                      (takes cue from "latest" property, wherever specified)
      --verbose                       Verbose logging
+     --silent                        Reduced logging (log only warnings and errors)
   -v --version                       Output the version number
   -h --help                          Show help
 ```
