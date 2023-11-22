@@ -423,7 +423,7 @@ var main = function (params) {
                     fs.writeFileSync(to, contents, copyFile.encoding === 'binary' ? null : 'utf8');
                     finalPath = to;
                 } catch (e) {
-                    cb(e);
+                    cb(e, null, finalPath || to);
                     return;
                 }
                 if (copyFilesSettings.addReferenceToSourceOfOrigin) {
@@ -591,6 +591,14 @@ var main = function (params) {
                             function (err, avoidedFileOverwrite, finalPath) {
                                 if (err) {
                                     warningsEncountered++;
+                                    let printTo;
+                                    try {
+                                        printTo = chalk.gray(utils.getRelativePath(cwd, finalPath));
+                                    } catch (e) {
+                                        // do nothing
+                                    }
+                                    let printFromTo = printFrom + ' to ' + printTo;
+
                                     logger.error(errorMessageFailedToCopy + printFromTo);
                                     if (bail) {
                                         logger.error(`An error occurred in writing file (From: ${copyFile.from} ; To: ${copyFile.to}).`);
@@ -600,8 +608,8 @@ var main = function (params) {
                                     cb();
                                     return;
                                 } else {
-                                    var printTo = ' ' + chalk.gray(utils.getRelativePath(cwd, finalPath));
-                                    var printFromTo = printFrom + ' to' + printTo;
+                                    let printTo = ' ' + chalk.gray(utils.getRelativePath(cwd, finalPath));
+                                    let printFromTo = printFrom + ' to' + printTo;
 
                                     postWriteOperations(
                                         copyFile,
