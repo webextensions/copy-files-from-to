@@ -79,15 +79,15 @@
         "md5": "^2.3.0",
         "mkdirp": "^3.0.1",
         "note-down": "=1.0.2",
-        "terser": "^5.29.2",
+        "terser": "^5.30.4",
         "unixify": "^1.0.0",
         "yargs": "^17.7.2"
     },
     "devDependencies": {
         "chai": "=4.4.1",
         "chai-files": "^1.4.0",
-        "eslint": "^8.57.0",
-        "mocha": "^10.3.0",
+        "eslint": "=8.57.0",
+        "mocha": "^10.4.0",
         "rimraf": "^5.0.5",
         "shelljs": "^0.8.5"
     }
