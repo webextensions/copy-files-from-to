@@ -1,0 +1,14 @@
+{
+    "copyFiles": [
+        {
+            "from": "node_modules/console-panel/src/console-panel.js",
+            "to": "dist/console-panel.js"
+        }
+    ],
+    "copyFilesSettings": {
+        "minifyJs": true,
+        "minifyJsTerserOptions": {
+            "mangle": true
+        }
+    }
+}

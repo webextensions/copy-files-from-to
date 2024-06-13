@@ -74,9 +74,19 @@
     ],
     "copyFilesSettings": {
         "whenFileExists": "notify-about-available-change",
-        "removeSourceMappingURL": false,
-        "minifyJs": false,
         "addReferenceToSourceOfOrigin": false,
-        "ignoreDotFilesAndFolders": true
+        "ignoreDotFilesAndFolders": true,
+        "removeSourceMappingURL": false,
+        "minifyJs": true,          // via https://www.npmjs.com/package/terser
+        "minifyJsTerserOptions": { // https://terser.org/docs/options/
+            // Default options if "minifyJsTerserOptions" is not specified
+            "compress": {
+                "sequences": false
+            },
+            "mangle": false,
+            "format": {
+                "semicolons": false
+            }
+        }
     }
 }

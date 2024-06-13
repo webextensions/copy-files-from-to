@@ -96,6 +96,7 @@ var utils = {
 
     additionalProcessing: async function (additionalOptions, code) {
         var needsMinify = additionalOptions.needsMinify;
+        var minifyJsTerserOptions = additionalOptions.minifyJsTerserOptions;
         var removeSourceMappingURL = additionalOptions.removeSourceMappingURL;
         var data = {};
 
@@ -110,40 +111,48 @@ var utils = {
         if (needsMinify) {
             var result = await minifyViaTerser(
                 String(code),
-                // Equivalent to: terser <source> --compress sequences=false --format semicolons=false --output <destination>
-                {
-                    compress: {
-                        sequences: false
-                    },
-                    mangle: false,
-                    format: {
-                        semicolons: false,
-                        comments: function (_, comment) {
-                            if (
-                                comment.value.charAt(0) === '!' ||
-                                /cc_on|copyright|license|preserve/i.test(comment.value)
-                            ) {
-                                return true;
-                            } else {
-                                return false;
-                            }
+                (
+                    minifyJsTerserOptions ||
+                    // Equivalent to: terser <source> --compress sequences=false --format semicolons=false --output <destination>
+                    {
+                        compress: {
+                            sequences: false
+                        },
+                        mangle: false,
+                        format: {
+                            semicolons: false,
+                            comments: function (_, comment) {
+                                if (
+                                    comment.value.charAt(0) === '!' ||
+                                    /cc_on|copyright|license|preserve/i.test(comment.value)
+                                ) {
+                                    return true;
+                                } else {
+                                    return false;
+                                }
 
-                            // if (comment.type === 'comment2') { // multiline comment
-                            //     return /@preserve|@license|@cc_on/i.test(comment.value);
-                            // } else if (comment.type === 'comment1') { // single line comment
-                            //     if (comment.value.indexOf('!') === 0) {
-                            //         return true;
-                            //     } else {
-                            //         return /@preserve|@license|@cc_on/i.test(comment.value);
-                            //     }
-                            // } else {
-                            //     return false;
-                            // }
+                                // if (comment.type === 'comment2') { // multiline comment
+                                //     return /@preserve|@license|@cc_on/i.test(comment.value);
+                                // } else if (comment.type === 'comment1') { // single line comment
+                                //     if (comment.value.indexOf('!') === 0) {
+                                //         return true;
+                                //     } else {
+                                //         return /@preserve|@license|@cc_on/i.test(comment.value);
+                                //     }
+                                // } else {
+                                //     return false;
+                                // }
+                            }
                         }
                     }
-                }
+                )
             );
-            var consoleCommand = 'terser <source> --compress sequences=false --format semicolons=false --output <destination>';
+            var consoleCommand;
+            if (minifyJsTerserOptions) {
+                consoleCommand = 'terser.minify() with options ' + JSON.stringify(minifyJsTerserOptions);
+            } else {
+                consoleCommand = 'terser <source> --compress sequences=false --format semicolons=false --output <destination>';
+            }
 
             data.code = result.code || code;
             data.consoleCommand = data.consoleCommand || {};

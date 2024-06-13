@@ -1,0 +1,7 @@
+# https://stackoverflow.com/questions/35278885/gitignore-exclusion-is-not-working-for-a-single-file/35279076#35279076
+/node_modules/**
+!node_modules/console-panel/
+!node_modules/console-panel/src/
+!node_modules/console-panel/src/console-panel.js
+
+/dist/

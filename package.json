@@ -68,7 +68,7 @@
     "homepage": "https://github.com/webextensions/copy-files-from-to#readme",
     "dependencies": {
         "async": "^3.2.5",
-        "axios": "^1.6.8",
+        "axios": "^1.7.2",
         "chalk": "=4.1.2",
         "cjson": "^0.5.0",
         "fast-glob": "^3.3.2",
@@ -79,7 +79,7 @@
         "md5": "^2.3.0",
         "mkdirp": "^3.0.1",
         "note-down": "=1.0.2",
-        "terser": "^5.30.4",
+        "terser": "^5.31.1",
         "unixify": "^1.0.0",
         "yargs": "^17.7.2"
     },
@@ -88,7 +88,7 @@
         "chai-files": "^1.4.0",
         "eslint": "=8.57.0",
         "mocha": "^10.4.0",
-        "rimraf": "^5.0.5",
+        "rimraf": "^5.0.7",
         "shelljs": "^0.8.5"
     }
 }

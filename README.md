@@ -156,10 +156,10 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
     ],
     "copyFilesSettings": {
         "whenFileExists": "notify-about-available-change",
-        "removeSourceMappingURL": false,
-        "minifyJs": false,
         "addReferenceToSourceOfOrigin": false,
-        "ignoreDotFilesAndFolders": true
+        "ignoreDotFilesAndFolders": true,
+        "removeSourceMappingURL": false,
+        "minifyJs": true
     }
 }
 ```
@@ -369,20 +369,6 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
             //     Default value: "do-nothing"
             "whenFileExists": "notify-about-available-change",
 
-            // removeSourceMappingURL (optional parameter)
-            //     Summary: When set to true, any contents after "//# sourceMappingURL=" would be removed before
-            //              the copy operation
-            //     Data type: boolean
-            //     Default value: false
-            "removeSourceMappingURL": false,
-
-            // minifyJs (optional parameter)
-            //     Summary: When set to true, the JavaScript files would be uglified before the copy operation
-            //              (via https://www.npmjs.com/package/terser)
-            //     Data type: boolean
-            //     Default value: false
-            "minifyJs": false,
-
             // addReferenceToSourceOfOrigin (optional parameter)
             //     Summary: When set to true, the copy operation would create a file "<to-file-path>.source.txt"
             //              which would contain a link to the "from" path
@@ -395,6 +381,37 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
             //     Data type: boolean
             //     Default value: false
             "ignoreDotFilesAndFolders": true
+
+            // removeSourceMappingURL (optional parameter)
+            //     Summary: When set to true, any contents after "//# sourceMappingURL=" would be removed before
+            //              the copy operation
+            //     Data type: boolean
+            //     Default value: false
+            "removeSourceMappingURL": false,
+
+            // minifyJs (optional parameter)
+            //     Summary: When set to true, the JavaScript files would be uglified before the copy operation
+            //              (via https://www.npmjs.com/package/terser)
+            //     Data type: boolean
+            //     Default value: false
+            "minifyJs": true,
+
+            // minifyJsTerserOptions (optional parameter)
+            //     Summary: Options for the terser minification operation
+            //     Data type: object
+            //     Default value: <as-specified-below>
+            "minifyJsTerserOptions": {
+                // Default options if "minifyJsTerserOptions" is not specified
+                // Note: License information is preserved in "comments" by default, but that will not work with
+                //       custom JSON options here
+                "compress": {
+                    "sequences": false
+                },
+                "mangle": false,
+                "format": {
+                    "semicolons": false
+                }
+            }
         }
     }
     ```

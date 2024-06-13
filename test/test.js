@@ -82,6 +82,7 @@ describe('package', function() {
                 cTxtFlat               = path.join(advancedUsageDir,                    'public', 'copy-to-flat-directory', 'c.txt');
 
             shell.exec(
+                // 'node --inspect-brk ' + path.join(__dirname, '..', 'index.js'), // DEBUG-HELPER
                 path.join(__dirname, '..', 'index.js'),
                 {
                     silent: true,
@@ -256,6 +257,54 @@ describe('package', function() {
                     expect(file(readme2MdTarget)).to.equal(file(readme2MdSource));
 
                     expect(file(webFileTarget)).to.equal(file(webFileSource));
+
+                    done();
+                }
+            );
+        });
+
+        it('should be able to minify a JS file', function (done) {
+            const testDir = path.join(__dirname, 'test-minify-js');
+            const cwdToUse = testDir;
+
+            rimrafSync(path.join(cwdToUse, 'dist'));
+
+            const
+                consolePanelJsOriginal = path.join(testDir, 'expected-output', 'dist', 'console-panel.js'),
+                consolePanelJs         = path.join(testDir, 'dist', 'console-panel.js');
+
+            shell.exec(
+                path.join(__dirname, '..', 'index.js'),
+                {
+                    silent: true,
+                    cwd: cwdToUse
+                },
+                function (exitCode, stdout, stderr) { // eslint-disable-line no-unused-vars
+                    expect(file(consolePanelJs)).to.equal(file(consolePanelJsOriginal));
+
+                    done();
+                }
+            );
+        });
+
+        it('should be able to minify a JS file with custom terser options', function (done) {
+            const testDir = path.join(__dirname, 'test-minify-js-with-terser-options');
+            const cwdToUse = testDir;
+
+            rimrafSync(path.join(cwdToUse, 'dist'));
+
+            const
+                consolePanelJsOriginal = path.join(testDir, 'expected-output', 'dist', 'console-panel.js'),
+                consolePanelJs         = path.join(testDir, 'dist', 'console-panel.js');
+
+            shell.exec(
+                path.join(__dirname, '..', 'index.js'),
+                {
+                    silent: true,
+                    cwd: cwdToUse
+                },
+                function (exitCode, stdout, stderr) { // eslint-disable-line no-unused-vars
+                    expect(file(consolePanelJs)).to.equal(file(consolePanelJsOriginal));
 
                     done();
                 }

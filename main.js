@@ -223,7 +223,7 @@ var main = function (params) {
                 return {
                     intendedFrom: from,
                     intendedTo: to,
-                    latest: latest,
+                    latest,
                     from: (function () {
                         if (utils.isRemoteResource(from)) {
                             return from;
@@ -243,8 +243,8 @@ var main = function (params) {
                                 }
                             });
                             return {
-                                globPatterns: globPatterns,
-                                globSettings: globSettings,
+                                globPatterns,
+                                globSettings,
                             };
                         }
                         return unixify(path.join(configFileSourceDirectory, from));
@@ -254,9 +254,9 @@ var main = function (params) {
                             unixify(path.join(configFileSourceDirectory, to)) + '/' :
                             unixify(path.join(configFileSourceDirectory, to))
                     ),
-                    toFlat: toFlat,
-                    removeSourceMappingURL: removeSourceMappingURL,
-                    minify: minify
+                    toFlat,
+                    removeSourceMappingURL,
+                    minify
                 };
             } else {
                 if (
@@ -464,12 +464,14 @@ var main = function (params) {
                     } else {
                         copyFile.encoding = encoding;
                         var needsMinify = copyFile.minify;
+                        var minifyJsTerserOptions = copyFilesSettings.minifyJsTerserOptions;
                         var removeSourceMappingURL = copyFile.removeSourceMappingURL;
 
                         (async function () {
                             var response = await utils.additionalProcessing({
-                                needsMinify: needsMinify,
-                                removeSourceMappingURL: removeSourceMappingURL
+                                needsMinify,
+                                minifyJsTerserOptions,
+                                removeSourceMappingURL
                             }, contentsOfFrom);
                             var processedCode = response.code;
 
@@ -497,11 +499,13 @@ var main = function (params) {
 
         var preWriteOperations = function (copyFile, contents, cb) {
             var needsMinify = copyFile.minify;
+            var minifyJsTerserOptions = copyFilesSettings.minifyJsTerserOptions;
             var removeSourceMappingURL = copyFile.removeSourceMappingURL;
             (async function () {
                 var response = await utils.additionalProcessing({
-                    needsMinify: needsMinify,
-                    removeSourceMappingURL: removeSourceMappingURL
+                    needsMinify,
+                    minifyJsTerserOptions,
+                    removeSourceMappingURL
                 }, contents);
 
                 var processedCode = response.code;
@@ -585,8 +589,8 @@ var main = function (params) {
                             copyFile,
                             {
                                 contents: contentsAfterPreWriteOperations,
-                                consoleCommand: consoleCommand,
-                                overwriteIfFileAlreadyExists: overwriteIfFileAlreadyExists
+                                consoleCommand,
+                                overwriteIfFileAlreadyExists
                             },
                             function (err, avoidedFileOverwrite, finalPath) {
                                 if (err) {
@@ -616,7 +620,7 @@ var main = function (params) {
                                         contentsOfFrom,
                                         contentsAfterPreWriteOperations,
                                         {
-                                            notifyAboutAvailableChange: notifyAboutAvailableChange
+                                            notifyAboutAvailableChange
                                         },
                                         function (appendToSuccessMessage) {
                                             if (avoidedFileOverwrite) {

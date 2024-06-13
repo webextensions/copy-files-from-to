@@ -5,6 +5,6 @@
   "license": "MIT",
   "repository": "https://github.com/webextensions/copy-files-from-to",
   "devDependencies": {
-    "native-promise-only": "0.8.1"
+    "native-promise-only": "=0.8.1"
   }
 }
