@@ -159,7 +159,17 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
         "addReferenceToSourceOfOrigin": false,
         "ignoreDotFilesAndFolders": true,
         "removeSourceMappingURL": false,
-        "minifyJs": true
+        "minifyJs": true,          // via https://www.npmjs.com/package/terser
+        "minifyJsTerserOptions": { // Reference: https://terser.org/docs/options/
+            // Default options if "minifyJsTerserOptions" is not set
+            "compress": {
+                "sequences": false
+            },
+            "mangle": false,
+            "format": {
+                "semicolons": false
+            }
+        }
     }
 }
 ```
@@ -400,10 +410,10 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
             //     Summary: Options for the terser minification operation
             //     Data type: object
             //     Default value: <as-specified-below>
+            //     Reference: https://terser.org/docs/options/
             "minifyJsTerserOptions": {
-                // Default options if "minifyJsTerserOptions" is not specified
-                // Note: License information is preserved in "comments" by default, but that will not work with
-                //       custom JSON options here
+                // Default options if "minifyJsTerserOptions" is not set
+                // Note: By default, only license information is preserved in "comments" (via a custom function defintion), set `minifyJsTerserOptions.format.comments` to `null` or an appropriate value to override that
                 "compress": {
                     "sequences": false
                 },

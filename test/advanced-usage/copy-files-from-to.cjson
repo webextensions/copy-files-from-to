@@ -78,8 +78,8 @@
         "ignoreDotFilesAndFolders": true,
         "removeSourceMappingURL": false,
         "minifyJs": true,          // via https://www.npmjs.com/package/terser
-        "minifyJsTerserOptions": { // https://terser.org/docs/options/
-            // Default options if "minifyJsTerserOptions" is not specified
+        "minifyJsTerserOptions": { // Reference: https://terser.org/docs/options/
+            // Default options if "minifyJsTerserOptions" is not set
             "compress": {
                 "sequences": false
             },

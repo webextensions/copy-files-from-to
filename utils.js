@@ -109,43 +109,55 @@ var utils = {
         }
 
         if (needsMinify) {
+            const terserOptionsToUse = (
+                minifyJsTerserOptions ||
+                // Equivalent to: terser <source> --compress sequences=false --format semicolons=false --output <destination>
+                {
+                    compress: {
+                        sequences: false
+                    },
+                    mangle: false,
+                    format: {
+                        semicolons: false
+                    }
+                }
+            );
+
+            if (typeof ((terserOptionsToUse || {}).format || {}).comments === 'undefined') {
+                try {
+                    terserOptionsToUse.format = terserOptionsToUse.format || {};
+                    terserOptionsToUse.format.comments = function (_, comment) {
+                        if (
+                            comment.value.charAt(0) === '!' ||
+                            /cc_on|copyright|license|preserve/i.test(comment.value)
+                        ) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+
+                        // if (comment.type === 'comment2') { // multiline comment
+                        //     return /@preserve|@license|@cc_on/i.test(comment.value);
+                        // } else if (comment.type === 'comment1') { // single line comment
+                        //     if (comment.value.indexOf('!') === 0) {
+                        //         return true;
+                        //     } else {
+                        //         return /@preserve|@license|@cc_on/i.test(comment.value);
+                        //     }
+                        // } else {
+                        //     return false;
+                        // }
+                    };
+                } catch (e) {
+                    logger.error('Error: Unable to set terser options for preserving code comments. Please check your configuration.');
+                    logger.error(e);
+
+                    process.exit(1);
+                }
+            }
             var result = await minifyViaTerser(
                 String(code),
-                (
-                    minifyJsTerserOptions ||
-                    // Equivalent to: terser <source> --compress sequences=false --format semicolons=false --output <destination>
-                    {
-                        compress: {
-                            sequences: false
-                        },
-                        mangle: false,
-                        format: {
-                            semicolons: false,
-                            comments: function (_, comment) {
-                                if (
-                                    comment.value.charAt(0) === '!' ||
-                                    /cc_on|copyright|license|preserve/i.test(comment.value)
-                                ) {
-                                    return true;
-                                } else {
-                                    return false;
-                                }
-
-                                // if (comment.type === 'comment2') { // multiline comment
-                                //     return /@preserve|@license|@cc_on/i.test(comment.value);
-                                // } else if (comment.type === 'comment1') { // single line comment
-                                //     if (comment.value.indexOf('!') === 0) {
-                                //         return true;
-                                //     } else {
-                                //         return /@preserve|@license|@cc_on/i.test(comment.value);
-                                //     }
-                                // } else {
-                                //     return false;
-                                // }
-                            }
-                        }
-                    }
-                )
+                terserOptionsToUse
             );
             var consoleCommand;
             if (minifyJsTerserOptions) {

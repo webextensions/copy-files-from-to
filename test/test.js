@@ -16,6 +16,12 @@ var { rimrafSync } = require('rimraf');
 
 var copyFilesFromTo = require('../index.js');       // eslint-disable-line no-unused-vars
 
+// const SILENT = false; // DEV-HELPER: DEBUG-HELPER:
+const SILENT = true;
+
+// const COMMAND_TO_RUN = 'node --inspect-brk ' + path.join(__dirname, '..', 'index.js'); // DEV-HELPER: DEBUG-HELPER:
+const COMMAND_TO_RUN = path.join(__dirname, '..', 'index.js');
+
 describe('package', function() {
     describe('copy-files-from-to', function() {
         this.timeout(10000);
@@ -41,9 +47,9 @@ describe('package', function() {
                 jqueryJs                = path.join(basicUsageDir, 'scripts', 'jquery', 'jquery.js');
 
             shell.exec(
-                path.join(__dirname, '..', 'index.js'),
+                COMMAND_TO_RUN,
                 {
-                    silent: true,
+                    silent: SILENT,
                     cwd: basicUsageDir
                 },
                 function (exitCode, stdout, stderr) { // eslint-disable-line no-unused-vars
@@ -82,10 +88,9 @@ describe('package', function() {
                 cTxtFlat               = path.join(advancedUsageDir,                    'public', 'copy-to-flat-directory', 'c.txt');
 
             shell.exec(
-                // 'node --inspect-brk ' + path.join(__dirname, '..', 'index.js'), // DEBUG-HELPER
-                path.join(__dirname, '..', 'index.js'),
+                COMMAND_TO_RUN,
                 {
-                    silent: true,
+                    silent: SILENT,
                     cwd: advancedUsageDir
                 },
                 function (exitCode, stdout, stderr) { // eslint-disable-line no-unused-vars
@@ -115,9 +120,9 @@ describe('package', function() {
                 underscoreJsMap         = path.join(dirToUse,                    'scripts', 'underscore.js.map');
 
             shell.exec(
-                path.join(__dirname, '..', 'index.js') + ' --mode pre-production',
+                COMMAND_TO_RUN + ' --mode pre-production',
                 {
-                    silent: true,
+                    silent: SILENT,
                     cwd: dirToUse
                 },
                 function (exitCode, stdout, stderr) { // eslint-disable-line no-unused-vars
@@ -145,9 +150,9 @@ describe('package', function() {
                 consolePanelCssGlob2    = path.join(testCopyFilesFromParentFolderDir, 'dest', 'folder-output-2', 'console-panel.css');
 
             shell.exec(
-                path.join(__dirname, '..', 'index.js'),
+                COMMAND_TO_RUN,
                 {
-                    silent: true,
+                    silent: SILENT,
                     cwd: cwdToUse
                 },
                 function (exitCode, stdout, stderr) { // eslint-disable-line no-unused-vars
@@ -174,9 +179,9 @@ describe('package', function() {
                 jqueryJs         = path.join(cwdToUse, 'scripts', 'jquery', 'jquery.js');
 
             shell.exec(
-                path.join(__dirname, '..', 'index.js'),
+                COMMAND_TO_RUN,
                 {
-                    silent: true,
+                    silent: SILENT,
                     cwd: cwdToUse
                 },
                 function (exitCode, stdout, stderr) { // eslint-disable-line no-unused-vars
@@ -206,9 +211,9 @@ describe('package', function() {
                 dir2File2Target = path.join(testCopyDirectory, 'target-dir', 'dir2', 'file2.txt');
 
             shell.exec(
-                path.join(__dirname, '..', 'index.js'),
+                COMMAND_TO_RUN,
                 {
-                    silent: true,
+                    silent: SILENT,
                     cwd: cwdToUse
                 },
                 function (exitCode, stdout, stderr) { // eslint-disable-line no-unused-vars
@@ -244,9 +249,9 @@ describe('package', function() {
                 webFileTarget = path.join(testDir, 'target-dir', 'remote', 'console-panel.js');
 
             shell.exec(
-                path.join(__dirname, '..', 'index.js'),
+                COMMAND_TO_RUN,
                 {
-                    silent: true,
+                    silent: SILENT,
                     cwd: cwdToUse
                 },
                 function (exitCode, stdout, stderr) { // eslint-disable-line no-unused-vars
@@ -274,9 +279,9 @@ describe('package', function() {
                 consolePanelJs         = path.join(testDir, 'dist', 'console-panel.js');
 
             shell.exec(
-                path.join(__dirname, '..', 'index.js'),
+                COMMAND_TO_RUN,
                 {
-                    silent: true,
+                    silent: SILENT,
                     cwd: cwdToUse
                 },
                 function (exitCode, stdout, stderr) { // eslint-disable-line no-unused-vars
@@ -298,9 +303,9 @@ describe('package', function() {
                 consolePanelJs         = path.join(testDir, 'dist', 'console-panel.js');
 
             shell.exec(
-                path.join(__dirname, '..', 'index.js'),
+                COMMAND_TO_RUN,
                 {
-                    silent: true,
+                    silent: SILENT,
                     cwd: cwdToUse
                 },
                 function (exitCode, stdout, stderr) { // eslint-disable-line no-unused-vars
