@@ -1,6 +1,5 @@
 # TODO
 
-* Use https://www.npmjs.com/package/terser to compress JavaScript files
 * Refactor code
 * Check the support for copying files across different partition (w.r.t. executing program) on Windows
 * If the operation attempts to modify a file outside the `process.cwd()`/config-file-directory, then `--unsafe` parameter must be passed
