@@ -3,6 +3,10 @@
         {
             "from": "source-dir",
             "to": "target-dir"
+        },
+        {
+            "from": "source (dir)",
+            "to": "target (dir)"
         }
     ]
 }

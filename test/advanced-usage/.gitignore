@@ -3,5 +3,10 @@
 !node_modules/native-promise-only/
 !node_modules/native-promise-only/npo.js
 
+!node_modules/jquery/
+!node_modules/jquery/dist/
+!node_modules/jquery/dist/jquery.min.js
+!node_modules/jquery/dist/jquery.min.map
+
 /scripts/
 /public/

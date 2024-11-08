@@ -10,10 +10,10 @@
 */
 !function($){if(!window.consolePanel){
 /*! (C) WebReflection Mit Style License */
-var CircularJSON=function(JSON,RegExp){var specialChar="~",safeSpecialChar="\\x"+("0"+specialChar.charCodeAt(0).toString(16)).slice(-2),escapedSafeSpecialChar="\\"+safeSpecialChar,specialCharRG=new RegExp(safeSpecialChar,"g"),safeSpecialCharRG=new RegExp(escapedSafeSpecialChar,"g"),safeStartWithSpecialCharRG=new RegExp("(?:^|([^\\\\]))"+escapedSafeSpecialChar),indexOf=[].indexOf||function(v){for(var i=this.length;i--&&this[i]!==v;);return i},$String=String
+var CircularJSON=function(JSON,RegExp){var safeSpecialChar="\\x"+("0"+"~".charCodeAt(0).toString(16)).slice(-2),escapedSafeSpecialChar="\\"+safeSpecialChar,specialCharRG=new RegExp(safeSpecialChar,"g"),safeSpecialCharRG=new RegExp(escapedSafeSpecialChar,"g"),safeStartWithSpecialCharRG=new RegExp("(?:^|([^\\\\]))"+escapedSafeSpecialChar),indexOf=[].indexOf||function(v){for(var i=this.length;i--&&this[i]!==v;);return i},$String=String
 function regenerate(root,current,retrieve){return current instanceof Array?function(root,current,retrieve){for(var i=0,length=current.length;i<length;i++)current[i]=regenerate(root,current[i],retrieve)
-return current}(root,current,retrieve):current instanceof $String?current.length?retrieve.hasOwnProperty(current)?retrieve[current]:retrieve[current]=function(current,keys){for(var i=0,length=keys.length;i<length;current=current[keys[i++].replace(safeSpecialCharRG,specialChar)]);return current}(root,current.split(specialChar)):root:current instanceof Object?function(root,current,retrieve){for(var key in current)current.hasOwnProperty(key)&&(current[key]=regenerate(root,current[key],retrieve))
-return current}(root,current,retrieve):current}var CircularJSON={stringify:function(value,replacer,space,doNotResolve){return CircularJSON.parser.stringify(value,function(value,replacer,resolve){var i,fn,doNotIgnore=!1,inspect=!!replacer,path=[],all=[value],seen=[value],mapp=[resolve?specialChar:"[Circular]"],last=value,lvl=1
+return current}(root,current,retrieve):current instanceof $String?current.length?retrieve.hasOwnProperty(current)?retrieve[current]:retrieve[current]=function(current,keys){for(var i=0,length=keys.length;i<length;current=current[keys[i++].replace(safeSpecialCharRG,"~")]);return current}(root,current.split("~")):root:current instanceof Object?function(root,current,retrieve){for(var key in current)current.hasOwnProperty(key)&&(current[key]=regenerate(root,current[key],retrieve))
+return current}(root,current,retrieve):current}var CircularJSON={stringify:function(value,replacer,space,doNotResolve){return CircularJSON.parser.stringify(value,function(value,replacer,resolve){var i,fn,doNotIgnore=!1,inspect=!!replacer,path=[],all=[value],seen=[value],mapp=[resolve?"~":"[Circular]"],last=value,lvl=1
 inspect&&(fn="object"==typeof replacer?function(key,value){return""!==key&&replacer.indexOf(key)<0?void 0:value}:replacer)
 return function(key,value){inspect&&(value=fn.call(this,key,value))
 if(doNotIgnore){if(last!==this){i=lvl-indexOf.call(all,this)-1
@@ -24,11 +24,11 @@ last=this}if("object"==typeof value&&value){indexOf.call(all,value)<0&&all.push(
 lvl=all.length
 if((i=indexOf.call(seen,value))<0){i=seen.push(value)-1
 if(resolve){path.push((""+key).replace(specialCharRG,safeSpecialChar))
-mapp[i]=specialChar+path.join(specialChar)}else mapp[i]=mapp[0]}else value=mapp[i]}else"string"==typeof value&&resolve&&(value=value.replace(safeSpecialChar,escapedSafeSpecialChar).replace(specialChar,safeSpecialChar))}else doNotIgnore=!0
+mapp[i]="~"+path.join("~")}else mapp[i]=mapp[0]}else value=mapp[i]}else"string"==typeof value&&resolve&&(value=value.replace(safeSpecialChar,escapedSafeSpecialChar).replace("~",safeSpecialChar))}else doNotIgnore=!0
 return value}}(value,replacer,!doNotResolve),space)},parse:function(text,reviver){return CircularJSON.parser.parse(text,function(reviver){return function(key,value){var isString="string"==typeof value
-if(isString&&value.charAt(0)===specialChar)return new $String(value.slice(1))
+if(isString&&"~"===value.charAt(0))return new $String(value.slice(1))
 ""===key&&(value=regenerate(value,value,{}))
-isString&&(value=value.replace(safeStartWithSpecialCharRG,"$1"+specialChar).replace(escapedSafeSpecialChar,safeSpecialChar))
+isString&&(value=value.replace(safeStartWithSpecialCharRG,"$1~").replace(escapedSafeSpecialChar,safeSpecialChar))
 return reviver?reviver.call(this,key,value):value}}(reviver))},parser:JSON}
 return CircularJSON}(JSON,RegExp)
 !function(){if("function"==typeof window.CustomEvent)return!1

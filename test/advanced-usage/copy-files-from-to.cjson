@@ -44,6 +44,13 @@
             }
         },
 
+        {
+            // TODO: FIXME: https://github.com/webextensions/copy-files-from-to/issues/27
+            // "from": "node_modules/jquery/dist/jquery.min.(js|map)",
+            "from": "node_modules/jquery/dist/jquery.min.*",
+            "to": "public/scripts/"
+        },
+
         // Copy the files matching the "glob" pattern
         {
             "from": "assets/**/*.jpg",
