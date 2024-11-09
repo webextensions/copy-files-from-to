@@ -598,7 +598,7 @@ var main = function (params) {
                                     let printTo;
                                     try {
                                         printTo = chalk.gray(utils.getRelativePath(cwd, finalPath));
-                                    } catch (e) {
+                                    } catch (e) { // eslint-disable-line no-unused-vars
                                         // do nothing
                                     }
                                     let printFromTo = printFrom + ' to ' + printTo;

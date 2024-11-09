@@ -1,6 +1,0 @@
-# http://eslint.org/docs/user-guide/configuring.html#ignoring-files-and-directories
-
-# node_modules ignored by default
-
-test/**/*.js
-!test/test.js
