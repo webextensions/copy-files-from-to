@@ -16,6 +16,34 @@ var chalk = logger.chalk;
 
 var packageJson = require('./package.json');
 
+const getNeedsMinify = function (copyFile, copyFilesSettings) {
+    let minifyJs = utils.booleanIntention(copyFilesSettings.minifyJs, false);
+
+    const { toMode } = copyFile;
+    if (toMode === 'object' && toMode.minifyJs !== undefined && toMode.minifyJs !== null) {
+        minifyJs = utils.booleanIntention(toMode.minifyJs, minifyJs);
+    }
+
+    if (copyFile && copyFile.minifyJs !== undefined && copyFile.minifyJs !== null) {
+        minifyJs = utils.booleanIntention(copyFile.minifyJs, minifyJs);
+    }
+
+    const {
+        from,
+        to
+    } = copyFile;
+    if (from.match(/\.js$/) || to.match(/\.js$/)) {
+        // If "from" or "to" path ends with ".js", that indicates that it is a JS file
+        // So, retain the minify setting.
+        // It is a "do nothing" block
+    } else {
+        // It does not seem to be a JS file. So, don't minify it.
+        minifyJs = false;
+    }
+
+    return minifyJs;
+};
+
 var main = function (params) {
     var paramVerbose = params.paramVerbose;
     var paramOutdated = params.paramOutdated;
@@ -49,7 +77,7 @@ var main = function (params) {
 
         for (var i = 0; i < copyFiles.length; i++) {
             var copyFile = copyFiles[i];
-            var from = copyFile.from;
+            const from = copyFile.from;
             if (from && typeof from === 'object') {
                 var modes = Object.keys(from);
                 for (var j = 0; j < modes.length; j++) {
@@ -171,12 +199,11 @@ var main = function (params) {
             var to = null,
                 skipTo = null,
                 removeSourceMappingURL = null,
-                minify = null;
+                toMode = null;
             if (typeof copyFile.to === 'string') {
                 to = copyFile.to;
-                minify = utils.booleanIntention(copyFilesSettings.minifyJs, false);
             } else {
-                var toMode = copyFile.to[mode] || copyFile.to['default'] || {};
+                toMode = copyFile.to[mode] || copyFile.to['default'] || {};
                 if (typeof toMode === 'string') {
                     to = toMode;
                 } else {
@@ -188,12 +215,6 @@ var main = function (params) {
                     removeSourceMappingURL = utils.booleanIntention(toMode.removeSourceMappingURL, false);
                 } else {
                     removeSourceMappingURL = utils.booleanIntention(copyFilesSettings.removeSourceMappingURL, false);
-                }
-
-                if (typeof toMode === 'object' && toMode.minifyJs !== undefined) {
-                    minify = utils.booleanIntention(toMode.minifyJs, false);
-                } else {
-                    minify = utils.booleanIntention(copyFilesSettings.minifyJs, false);
                 }
             }
 
@@ -211,15 +232,6 @@ var main = function (params) {
             }
 
             if ((typeof from === 'string' || Array.isArray(from)) && typeof to === 'string') {
-                if (!Array.isArray(from) && (from.match(/\.js$/) || to.match(/\.js$/))) {
-                    // If "from" or "to" path ends with ".js", that indicates that it is a JS file
-                    // So, retain the minify setting.
-                    // It is a "do nothing" block
-                } else {
-                    // It does not seem to be a JS file. So, don't minify it.
-                    minify = false;
-                }
-
                 return {
                     intendedFrom: from,
                     intendedTo: to,
@@ -256,7 +268,7 @@ var main = function (params) {
                     ),
                     toFlat,
                     removeSourceMappingURL,
-                    minify
+                    toMode
                 };
             } else {
                 if (
@@ -297,6 +309,8 @@ var main = function (params) {
 
                     logger.warn('    ' + JSON.stringify(copyFile, null, '    ').replace(/\n/g, '\n    '));
                 }
+
+                return null;
             }
         });
 
@@ -463,11 +477,11 @@ var main = function (params) {
                         warningsEncountered++;
                     } else {
                         copyFile.encoding = encoding;
-                        var needsMinify = copyFile.minify;
                         var minifyJsTerserOptions = copyFilesSettings.minifyJsTerserOptions;
                         var removeSourceMappingURL = copyFile.removeSourceMappingURL;
 
                         (async function () {
+                            const needsMinify = getNeedsMinify(copyFile, copyFilesSettings);
                             var response = await utils.additionalProcessing({
                                 needsMinify,
                                 minifyJsTerserOptions,
@@ -498,10 +512,10 @@ var main = function (params) {
         };
 
         var preWriteOperations = function (copyFile, contents, cb) {
-            var needsMinify = copyFile.minify;
             var minifyJsTerserOptions = copyFilesSettings.minifyJsTerserOptions;
             var removeSourceMappingURL = copyFile.removeSourceMappingURL;
             (async function () {
+                const needsMinify = getNeedsMinify(copyFile, copyFilesSettings);
                 var response = await utils.additionalProcessing({
                     needsMinify,
                     minifyJsTerserOptions,
