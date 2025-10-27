@@ -73,10 +73,10 @@ $ copy-files-from-to
 Reading copy instructions from file copy-files-from-to.json
 
 Starting copy operation in "default" mode:
- ✓ Copied [ utf8 ] node_modules/jquery/dist/jquery.js to scripts/jquery/jquery.js
- ✓ Copied [binary] assets/logo.png to build/logo.png
- ✓ Copied [remote] https://raw.githubusercontent.com/webextensions/console-panel/master/src/console-panel.css to scripts/console-panel/console-panel.css
- ✓ Copied [remote] https://raw.githubusercontent.com/webextensions/console-panel/master/src/console-panel.js to scripts/console-panel/console-panel.js
+ ✔ Copied [ utf8 ] node_modules/jquery/dist/jquery.js to scripts/jquery/jquery.js
+ ✔ Copied [binary] assets/logo.png to build/logo.png
+ ✔ Copied [remote] https://raw.githubusercontent.com/webextensions/console-panel/master/src/console-panel.css to scripts/console-panel/console-panel.css
+ ✔ Copied [remote] https://raw.githubusercontent.com/webextensions/console-panel/master/src/console-panel.js to scripts/console-panel/console-panel.js
 ```
 
 
@@ -184,8 +184,8 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
   Reading copy instructions from file copy-files-from-to.cjson
 
   Starting copy operation in "default" mode:
-   ✓ Copied [remote] https://raw.githubusercontent.com/jashkenas/underscore/master/underscore-min.js to scripts/underscore.js
-   ✓ Copied [remote] https://raw.githubusercontent.com/webextensions/console-panel/master/src/console-panel.js to scripts/console-panel/console-panel.js
+   ✔ Copied [remote] https://raw.githubusercontent.com/jashkenas/underscore/master/underscore-min.js to scripts/underscore.js
+   ✔ Copied [remote] https://raw.githubusercontent.com/webextensions/console-panel/master/src/console-panel.js to scripts/console-panel/console-panel.js
   ```
   </p>
 </details>
@@ -198,8 +198,8 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
   Reading copy instructions from file copy-files-from-to.cjson
 
   Starting copy operation in "development" mode:
-   ✓ Copied [remote] https://raw.githubusercontent.com/jashkenas/underscore/master/underscore.js to scripts/underscore.js
-   ✓ Copied [remote] https://raw.githubusercontent.com/webextensions/console-panel/master/src/console-panel.js to scripts/console-panel/console-panel.js
+   ✔ Copied [remote] https://raw.githubusercontent.com/jashkenas/underscore/master/underscore.js to scripts/underscore.js
+   ✔ Copied [remote] https://raw.githubusercontent.com/webextensions/console-panel/master/src/console-panel.js to scripts/console-panel/console-panel.js
   ```
   </p>
 </details>
@@ -212,8 +212,8 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
   Reading copy instructions from file copy-files-from-to.cjson
 
   Starting copy operation in "production" mode:
-   ✓ Copied [ utf8 ] node_modules/native-promise-only/npo.js to scripts/native-promise-only.js
-   ✓ Copied [remote] https://raw.githubusercontent.com/jashkenas/underscore/master/underscore-min.js to scripts/underscore.js
+   ✔ Copied [ utf8 ] node_modules/native-promise-only/npo.js to scripts/native-promise-only.js
+   ✔ Copied [remote] https://raw.githubusercontent.com/jashkenas/underscore/master/underscore-min.js to scripts/underscore.js
   ```
   </p>
 </details>
@@ -226,10 +226,10 @@ Sample file: [copy-files-from-to.cjson](test/advanced-usage/copy-files-from-to.c
   Reading copy instructions from file copy-files-from-to.cjson
 
   Starting copy operation in "pre-production" mode:
-   ✓ Copied [ utf8 ] node_modules/native-promise-only/npo.js to scripts/native-promise-only.js
-   ✓ Copied [remote] https://raw.githubusercontent.com/jashkenas/underscore/master/underscore-min.js to scripts/underscore.js
-   ✓ Copied [remote] https://raw.githubusercontent.com/jashkenas/underscore/master/underscore-min.js.map to scripts/underscore.js.map
-   ✓ Copied [remote] https://raw.githubusercontent.com/webextensions/console-panel/master/src/console-panel.js to scripts/console-panel/console-panel.js
+   ✔ Copied [ utf8 ] node_modules/native-promise-only/npo.js to scripts/native-promise-only.js
+   ✔ Copied [remote] https://raw.githubusercontent.com/jashkenas/underscore/master/underscore-min.js to scripts/underscore.js
+   ✔ Copied [remote] https://raw.githubusercontent.com/jashkenas/underscore/master/underscore-min.js.map to scripts/underscore.js.map
+   ✔ Copied [remote] https://raw.githubusercontent.com/webextensions/console-panel/master/src/console-panel.js to scripts/console-panel/console-panel.js
   ```
   </p>
 </details>

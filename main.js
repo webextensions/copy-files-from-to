@@ -141,7 +141,7 @@ var main = function (params) {
                         function () {
                             if (resourceSrcContents !== null && resourceLatestContents !== null) {
                                 if (String(resourceSrcContents) === String(resourceLatestContents)) {
-                                    logger.success(' ✓' + chalk.gray(' (Up to date) ' + resourceSrc));
+                                    logger.success(' ✔' + chalk.gray(' (Up to date) ' + resourceSrc));
                                 } else {
                                     logger.warn(' 🔃 ("src" is outdated w.r.t. "latest") ' + chalk.gray(resourceSrc));
                                 }
@@ -560,8 +560,8 @@ var main = function (params) {
             var printFrom = ' ' + chalk.gray(utils.getRelativePath(cwd, from));
             var printFromToOriginal =  ' ' + chalk.gray(utils.getRelativePath(cwd, to));
 
-            var successMessage = ' ' + chalk.green('✓') + ` Copied `,
-                successMessageAvoidedFileOverwrite = ' ' + chalk.green('✓') + chalk.gray(' Already exists'),
+            var successMessage = ' ' + chalk.green('✔') + ` Copied `,
+                successMessageAvoidedFileOverwrite = ' ' + chalk.green('✔') + chalk.gray(' Already exists'),
                 errorMessageCouldNotReadFromSrc = ' ' + chalk.red('✗') + ' Could not read',
                 errorMessageFailedToCopy = ' ' + chalk.red('✗') + ' Failed to copy';
 
