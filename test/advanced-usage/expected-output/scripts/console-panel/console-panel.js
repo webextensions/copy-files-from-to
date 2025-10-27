@@ -42,12 +42,12 @@ div.id="topCenterAlertNote"
 var h=function(div){div.style.display="none"},clearTimeout=function(){w.clearTimeout(t)},alertNote=function(msg,hideDelay,options){var verticalAlignment=(options=options||{}).verticalAlignment||"top",horizontalAlignment=options.horizontalAlignment||"center",textAlignment=options.textAlignment||horizontalAlignment,backgroundColor=options.backgroundColor||"#f9edbe",borderColor=options.borderColor||"#eb7",opacity=options.opacity||"1",unobtrusive=options.unobtrusive||!1
 div.innerHTML=['<div style="pointer-events:none;position:fixed;width:100%;z-index:2147483600;'+("bottom"===verticalAlignment?"bottom:0;":"top:0;")+("left"===horizontalAlignment?"left:0;":"right"===horizontalAlignment?"right:0;":"left:0;")+"text-align:"+horizontalAlignment+";opacity:"+opacity+';">','<div style="display:flex;width:auto;margin:0;padding:0;border:0;'+("left"===horizontalAlignment?"justify-content:flex-start;":"right"===horizontalAlignment?"justify-content:flex-end;":"justify-content:center;")+'">','<div style="pointer-events:initial;border:1px solid '+borderColor+";background-color:"+backgroundColor+';padding:2px 10px;max-width:980px;overflow:hidden;text-align:left;font-family:Arial,sans-serif;font-weight:bold;font-size:12px">','<div class="alert-note-text" style="color:#000;text-align:'+textAlignment+';word-wrap:break-word;">',msg,"</div>","</div>","</div>","</div>"].join("")
 if(unobtrusive)try{var firstChild=div.firstChild.firstChild.firstChild
-firstChild.addEventListener("mouseenter",(function(){firstChild.style.transition="opacity 0.3s ease-out"
+firstChild.addEventListener("mouseenter",function(){firstChild.style.transition="opacity 0.3s ease-out"
 firstChild.style.opacity="0"
-firstChild.style.pointerEvents="none"}),!1)}catch(e){}div.style.display=""
+firstChild.style.pointerEvents="none"},!1)}catch(e){}div.style.display=""
 dE.appendChild(div)
 clearTimeout()
-t=w.setTimeout((function(){h(div)}),hideDelay||5e3)}
+t=w.setTimeout(function(){h(div)},hideDelay||5e3)}
 alertNote.hide=function(){h(div)
 clearTimeout()}
 return alertNote}(),constants_DISABLE_FOR_THIS_INSTANCE="Disable for this instance",moduleGlobal={}
@@ -71,7 +71,7 @@ devtools.orientation=null}else{devtools.open&&devtools.orientation===orientation
 devtools.open=!0
 devtools.orientation=orientation}return devtools}
 scope.updateDevToolsStatus=updateDevToolsStatus
-window.addEventListener("resize",(function(e){e.target===window&&updateDevToolsStatus()}))}(moduleGlobal)
+window.addEventListener("resize",function(e){e.target===window&&updateDevToolsStatus()})}(moduleGlobal)
 var ready=function(cb){"loading"!==document.readyState?cb():document.addEventListener("DOMContentLoaded",cb)},getFullKey=function(key){return"userPreference-"+key},defaultUserPreference={}
 defaultUserPreference[getFullKey("consolePanelHeight")]="250"
 var varConsole,userPreference=function(preference,value){var fullKey=getFullKey(preference)
@@ -80,8 +80,8 @@ return!0}catch(e){return!1}}(fullKey,value)
 var retValue=function(key){try{return localStorage[key]}catch(e){return}}(fullKey)
 return void 0===retValue?defaultUserPreference[fullKey]:retValue},sanitizeHTML=function(html){return(""+html).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#x27;").replace(/\//g,"&#x2F;")},sanitizedInnerHTML=function(el,html){el.innerHTML=sanitizeHTML(html)},getResourceUrlFromPath=function(path){return path=(path=(path=path||"").replace(/:[0-9]+$/,"")).replace(/:[0-9]+$/,"")},getCurrentExecutionDetails=function(options){var arrStack,skipLevels=options.skipLevels||1,errStr=""
 if(Object.keys(options).indexOf("stack")>=0)errStr=options.stack?options.stack:""
-else try{throw new Error("")}catch(e){errStr=e.stack||""}-1!==navigator.userAgent.toLowerCase().indexOf("gecko")&&-1===navigator.userAgent.toLowerCase().indexOf("like gecko")?(arrStack=errStr.split(/\n[\s]*/).map((function(str){var split=str.split("@")
-return split[split.length-1]}))).splice(0,skipLevels-1):(arrStack=errStr.split(/\n[\s]+at[\s]/)).splice(0,skipLevels)
+else try{throw new Error("")}catch(e){errStr=e.stack||""}-1!==navigator.userAgent.toLowerCase().indexOf("gecko")&&-1===navigator.userAgent.toLowerCase().indexOf("like gecko")?(arrStack=errStr.split(/\n[\s]*/).map(function(str){var split=str.split("@")
+return split[split.length-1]})).splice(0,skipLevels-1):(arrStack=errStr.split(/\n[\s]+at[\s]/)).splice(0,skipLevels)
 var stackToReport=errStr.split(/\n/)
 "Error"===stackToReport[0]?stackToReport.splice(1,skipLevels-1):stackToReport.splice(0,skipLevels-1)
 stackToReport=stackToReport.join("\n")
@@ -133,20 +133,20 @@ devToolsIcon.className="dev-tools-icon "+recommendedClassName
 devToolsIconStrongNotification.className=showStrongNotification?"strong-notification":""
 if(showStrongNotification){var dataLastStrongNotification=Date.now()
 devToolsIconStrongNotification.setAttribute("data-last-strong-notification",dataLastStrongNotification)
-setTimeout((function(){if(dataLastStrongNotification===parseInt(devToolsIconStrongNotification.getAttribute("data-last-strong-notification"),10)){devToolsIconStrongNotification.removeAttribute("data-last-strong-notification")
-devToolsIconStrongNotification.classList.remove("strong-notification")}}),1500)}}else{devToolsIcon.innerHTML=""
+setTimeout(function(){if(dataLastStrongNotification===parseInt(devToolsIconStrongNotification.getAttribute("data-last-strong-notification"),10)){devToolsIconStrongNotification.removeAttribute("data-last-strong-notification")
+devToolsIconStrongNotification.classList.remove("strong-notification")}},1500)}}else{devToolsIcon.innerHTML=""
 devToolsIcon.removeAttribute("title")
 devToolsIcon.className="dev-tools-icon no-unread-messages"
 devToolsIconStrongNotification.classList.remove("strong-notification")}}
 ConsolePanel.prototype.flushLogsToUIAsync=function(){var that=this
-requestAnimationFrame((function(){requestAnimationFrame((function(){that.flushLogsToUI()}))}))}
+requestAnimationFrame(function(){requestAnimationFrame(function(){that.flushLogsToUI()})})}
 ConsolePanel.prototype.flushLogsToUI=function(){this.flushCountToIcon()
 if(this.isConsolePanelVisible()){var shouldScrollToBottom=!1,logger=this.logger
 logger.scrollHeight===logger.scrollTop+logger.offsetHeight&&(shouldScrollToBottom=!0)
 for(var arrLogs=this.arrLogs;arrLogs.length;){var item=arrLogs.shift(),logMode=item.logMode,logEntry=item.logEntry,initiator=item.initiator,time=item.time,consoleMessageWrapper=document.createElement("div")
 this.loggerBody.appendChild(consoleMessageWrapper)
 consoleMessageWrapper.title="Logged at "+time.toTimeString().substring(0,8)
-consoleMessageWrapper.className="dev-tools-console-message-wrapper "+("log"===logMode?"log-mode-log":"info"===logMode?"log-mode-info":"warn"===logMode?"log-mode-warn":"error"===logMode?"log-mode-error":"window.onerror"===logMode?"log-mode-window-onerror":"clear"===logMode?"log-mode-clear":"unhandled"===logMode?"log-mode-unhandled":"log-mode-unknown")
+consoleMessageWrapper.className="dev-tools-console-message-wrapper "+function(){return"log"===logMode?"log-mode-log":"info"===logMode?"log-mode-info":"warn"===logMode?"log-mode-warn":"error"===logMode?"log-mode-error":"window.onerror"===logMode?"log-mode-window-onerror":"clear"===logMode?"log-mode-clear":"unhandled"===logMode?"log-mode-unhandled":"log-mode-unknown"}()
 var divLogExecution=document.createElement("div")
 consoleMessageWrapper.appendChild(divLogExecution)
 divLogExecution.className="dev-tools-console-message-code-line"
@@ -159,8 +159,7 @@ consoleMessage.appendChild(span)
 span.innerHTML=" "}else for(var i=0;i<logEntry.length;i++){if(i>0){var spacer=document.createElement("span")
 consoleMessage.appendChild(spacer)
 spacer.innerHTML=" "}span=document.createElement("span")
-consoleMessage.appendChild(span)
-!function(options){var className=options.className||"log-value-unknown",valueToLog=options.valueToLog,container=span
+consoleMessage.appendChild(span);(function(options){var className=options.className||"log-value-unknown",valueToLog=options.valueToLog,container=span
 container.className=className
 if("log-value-unknown"===className||"log-value-object"===className||"log-value-array"===className)if("undefined"==typeof JSONEditor){container.classList.add("jsoneditor-not-available")
 Array.isArray(valueToLog)?sanitizedInnerHTML(container,String("["+valueToLog.length+"]")):sanitizedInnerHTML(container,"object"==typeof valueToLog?String("{"+Object.keys(valueToLog).length+"}"):String(typeof valueToLog)+" ("+String(valueToLog)+")")}else{var editor=new JSONEditor(container,{mode:"view",navigationBar:!1,search:!1,sortObjectKeys:!0})
@@ -181,10 +180,10 @@ container.appendChild(spanFirstLine)
 spanFirstLine.className="only-first-line-of-code"
 spanFirstLine.innerHTML='<pre><code class="language-markup">'+sanitizeHTML(firstLineOfValueToLog)+"</code></pre>"
 "undefined"!=typeof Prism&&Prism.highlightAllUnder(spanFirstLine)
-spanExpandCollapse.addEventListener("click",(function(evt){if(spanExpandCollapse.classList.contains("console-panel-collapsed")){spanFirstLine.style.display="none"
+spanExpandCollapse.addEventListener("click",function(evt){if(spanExpandCollapse.classList.contains("console-panel-collapsed")){spanFirstLine.style.display="none"
 spanFullCode?spanFullCode.style.display="":spanFullCode=renderFullCode()}else{spanFirstLine.style.display=""
 spanFullCode.style.display="none"}spanExpandCollapse.classList.toggle("console-panel-collapsed")
-spanExpandCollapse.classList.toggle("console-panel-expanded")}))}else renderFullCode()}else container.innerHTML=String(valueToLog)}(logEntry[i])}if(["error","warn"].indexOf(logMode)>=0&&initiator.stack){var div=document.createElement("div")
+spanExpandCollapse.classList.toggle("console-panel-expanded")})}else renderFullCode()}else container.innerHTML=String(valueToLog)})(logEntry[i])}if(["error","warn"].indexOf(logMode)>=0&&initiator.stack){var div=document.createElement("div")
 consoleMessage.appendChild(div)
 div.className="log-call-stack"
 var initiatorStack=initiator.stack.split("\n")
@@ -216,20 +215,20 @@ entryToPush.push(this.logArrayEntry({type:logEntryType,value:msg}))}var report={
 this.config.reportLogLines?report.initiator=getCurrentExecutionDetails("window.onerror"===logMode?{skipLevels:0,stack:(args[0].error[4]||{}).stack}:{skipLevels:5}):report.initiator={}
 var that=this
 that.arrLogs.push(report)
-ready((function(){that.flushLogsToUIAsync()}))}
+ready(function(){that.flushLogsToUIAsync()})}
 ConsolePanel.prototype.clear=function(){var reportLogLines=this.config.reportLogLines
 this.arrLogs=[]
 this.arrLogs.push({logMode:"clear",time:new Date,logEntry:[this.logArrayEntry({type:"console.clear",value:"Console was cleared"})],initiator:reportLogLines?getCurrentExecutionDetails({skipLevels:4}):{}})
 this.loggerBody.innerHTML=""
 this.flushLogsToUIAsync()}
 ConsolePanel.prototype.setupIntercept=function(){var that=this,originals=that.originals,functionsToIntercept=that.config.functionsToIntercept,interceptIfRequired=function(type,original,cb){return"all"===functionsToIntercept||functionsToIntercept.indexOf(type)>=0?cb():original}
-originals["window.onerror"]=interceptIfRequired("window.onerror",originals["window.onerror"],(function(){return after(window,"onerror",(function(){that.markLogEntry("window.onerror",[{error:arguments}])}))}))
-originals["console.clear"]=after(varConsole,"clear",(function(){that.clear()}),console)
-originals["console.log"]=interceptIfRequired("console.log",originals["console.log"],(function(){return after(varConsole,"log",(function(){that.markLogEntry("log",arguments)}),console)}))
-originals["console.info"]=interceptIfRequired("console.info",originals["console.info"],(function(){return after(varConsole,"info",(function(){that.markLogEntry("info",arguments)}),console)}))
-originals["console.warn"]=interceptIfRequired("console.warn",originals["console.warn"],(function(){return after(varConsole,"warn",(function(){that.markLogEntry("warn",arguments)}),console)}))
-originals["console.error"]=interceptIfRequired("console.error",originals["console.error"],(function(){return after(varConsole,"error",(function(){that.markLogEntry("error",arguments)}),console)}))
-Object.keys(varConsole).forEach((function(key){-1===["log","info","warn","error","clear"].indexOf(key)&&"function"==typeof varConsole[key]&&(originals["console."+key]=interceptIfRequired(key,originals["console."+key],(function(){return after(varConsole,key,(function(){that.markLogEntry("unhandled",arguments)}),console)})))}))}
+originals["window.onerror"]=interceptIfRequired("window.onerror",originals["window.onerror"],function(){return after(window,"onerror",function(){that.markLogEntry("window.onerror",[{error:arguments}])})})
+originals["console.clear"]=after(varConsole,"clear",function(){that.clear()},console)
+originals["console.log"]=interceptIfRequired("console.log",originals["console.log"],function(){return after(varConsole,"log",function(){that.markLogEntry("log",arguments)},console)})
+originals["console.info"]=interceptIfRequired("console.info",originals["console.info"],function(){return after(varConsole,"info",function(){that.markLogEntry("info",arguments)},console)})
+originals["console.warn"]=interceptIfRequired("console.warn",originals["console.warn"],function(){return after(varConsole,"warn",function(){that.markLogEntry("warn",arguments)},console)})
+originals["console.error"]=interceptIfRequired("console.error",originals["console.error"],function(){return after(varConsole,"error",function(){that.markLogEntry("error",arguments)},console)})
+Object.keys(varConsole).forEach(function(key){-1===["log","info","warn","error","clear"].indexOf(key)&&"function"==typeof varConsole[key]&&(originals["console."+key]=interceptIfRequired(key,originals["console."+key],function(){return after(varConsole,key,function(){that.markLogEntry("unhandled",arguments)},console)}))})}
 ConsolePanel.prototype.render=function(){var that=this,consolePanelContainer=document.createElement("div")
 consolePanelContainer.id="console-panel"
 document.body.appendChild(consolePanelContainer)
@@ -242,8 +241,8 @@ devToolsIconContainer.appendChild(devToolsIconStrongNotification)
 var devToolsIcon=document.createElement("div")
 this.devToolsIcon=devToolsIcon
 devToolsIcon.className="dev-tools-icon no-unread-messages"
-devToolsIcon.addEventListener("click",(function(evt){that.showConsolePanel()
-that.hideDevToolsIconContainer()}))
+devToolsIcon.addEventListener("click",function(evt){that.showConsolePanel()
+that.hideDevToolsIconContainer()})
 this.hideDevToolsIconContainer()
 devToolsIconStrongNotification.appendChild(devToolsIcon)
 var devTools=document.createElement("div")
@@ -265,21 +264,21 @@ var crossIcon=document.createElement("div")
 devToolsHeader.appendChild(crossIcon)
 crossIcon.title="Close"
 crossIcon.className="dev-tools-header-cross-icon"
-crossIcon.addEventListener("click",(function(evt){that.hideConsolePanel()
-that.showDevToolsIconContainer()}))
+crossIcon.addEventListener("click",function(evt){that.hideConsolePanel()
+that.showDevToolsIconContainer()})
 var disableIcon=document.createElement("div")
 that.disableIcon=disableIcon
 disableIcon.title=constants_DISABLE_FOR_THIS_INSTANCE
 disableIcon.className="dev-tools-header-disable-icon"
-disableIcon.addEventListener("click",(function(evt){if(that.config&&"function"==typeof that.config.beforeDisableButtonClick){if(!1===that.config.beforeDisableButtonClick())return}that.hideConsolePanel()
-that.disable()}))
+disableIcon.addEventListener("click",function(evt){if(that.config&&"function"==typeof that.config.beforeDisableButtonClick){if(!1===that.config.beforeDisableButtonClick())return}that.hideConsolePanel()
+that.disable()})
 devToolsHeader.appendChild(disableIcon)
 var clearConsoleIcon=document.createElement("div")
 devToolsHeader.appendChild(clearConsoleIcon)
 clearConsoleIcon.title="Clear"
 clearConsoleIcon.className="dev-tools-clear-console-icon"
-clearConsoleIcon.addEventListener("click",(function(evt){that.clear()
-console.clear()}))
+clearConsoleIcon.addEventListener("click",function(evt){that.clear()
+console.clear()})
 var consoleTitle=document.createElement("div")
 devToolsHeader.appendChild(consoleTitle)
 consoleTitle.innerHTML="Console"
@@ -299,7 +298,7 @@ var loggerBody=document.createElement("div")
 this.loggerBody=loggerBody
 logger.appendChild(loggerBody)
 loggerBody.className="dev-tools-console-body"
-window.addEventListener("console-panel-devtoolschange",(function(e){that.config.doNotUseWhenDevToolsMightBeOpenInTab&&(e.detail.open?that.hideBecauseDevToolsIsOpen():that.showBecauseDevToolsIsClosed())}))
+window.addEventListener("console-panel-devtoolschange",function(e){that.config.doNotUseWhenDevToolsMightBeOpenInTab&&(e.detail.open?that.hideBecauseDevToolsIsOpen():that.showBecauseDevToolsIsClosed())})
 moduleGlobal.updateDevToolsStatus()}
 ConsolePanel.prototype.enable=function(config){config=config||{}
 var that=this
@@ -316,17 +315,17 @@ config.beforeDisableButtonClick=beforeDisableButtonClick
 config.position=position}(that.config)
 that.setupIntercept()
 reportLogLines?that.enableReportLogLines():that.disableReportLogLines()
-that.domReady||ready((function(){that.render()
-that.domReady=!0}))
-ready((function(){that.setButtonPosition(position)
+that.domReady||ready(function(){that.render()
+that.domReady=!0})
+ready(function(){that.setButtonPosition(position)
 that.disableIcon.title=disableButtonTitle
 showOnlyForTheseRelevantMessages||that.config.doNotUseWhenDevToolsMightBeOpenInTab&&((devtoolsStatus=moduleGlobal.getDevToolsStatus())&&devtoolsStatus.open)||that.showDevToolsIconContainer()
 var devtoolsStatus
-that.flushLogsToUIAsync()}))
+that.flushLogsToUIAsync()})
 that.enabled=!0}
 ConsolePanel.prototype.disable=function(){var that=this
 window.onerror=that.originals["window.onerror"]
-Object.keys(varConsole).forEach((function(key){that.originals["console."+key]&&(varConsole[key]=that.originals["console."+key])}))
+Object.keys(varConsole).forEach(function(key){that.originals["console."+key]&&(varConsole[key]=that.originals["console."+key])})
 that.enabled=!1}
 ConsolePanel.prototype.enableReportLogLines=function(){this.config.reportLogLines=!0}
 ConsolePanel.prototype.disableReportLogLines=function(){this.config.reportLogLines=!1}
