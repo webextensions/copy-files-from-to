@@ -1,6 +1,6 @@
 {
     "name": "copy-files-from-to",
-    "version": "3.14.0",
+    "version": "4.0.0",
     "description": "Copy files from one path to another, based on the instructions provided in a configuration file.",
     "engines": {
         "node": ">=22.12.0"
