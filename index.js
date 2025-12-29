@@ -13,13 +13,10 @@ var utils = require('./utils.js');
 const logger = utils.logger;
 var chalk = logger.chalk;
 
-var yargs = require('yargs');
-var { hideBin } = require('yargs/helpers');
-
-var argv = yargs(hideBin(process.argv))
+var argv = require('yargs')
     .help(false)
     .version(false)
-    .parse();
+    .argv;
 
 var main = require('./main.js');
 
