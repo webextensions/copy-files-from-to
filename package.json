@@ -3,7 +3,7 @@
     "version": "3.13.0",
     "description": "Copy files from one path to another, based on the instructions provided in a configuration file.",
     "engines": {
-        "node": ">=18"
+        "node": ">=22.12.0"
     },
     "main": "index.js",
     "bin": {
