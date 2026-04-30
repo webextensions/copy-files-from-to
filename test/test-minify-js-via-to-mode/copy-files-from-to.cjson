@@ -1,0 +1,16 @@
+{
+    "copyFiles": [
+        {
+            "from": "node_modules/console-panel/src/console-panel.js",
+            "to": {
+                "default": {
+                    "dest": "dist/console-panel.js",
+                    "minifyJs": true
+                }
+            }
+        }
+    ],
+    "copyFilesSettings": {
+        "minifyJs": false
+    }
+}

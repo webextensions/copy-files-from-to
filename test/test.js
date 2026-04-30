@@ -315,5 +315,29 @@ describe('package', function() {
                 }
             );
         });
+
+        it('should be able to minify a JS file when minifyJs is set in the "to" mode object (not in global settings)', function (done) {
+            const testDir = path.join(__dirname, 'test-minify-js-via-to-mode');
+            const cwdToUse = testDir;
+
+            rimrafSync(path.join(cwdToUse, 'dist'));
+
+            const
+                consolePanelJsOriginal = path.join(testDir, 'expected-output', 'dist', 'console-panel.js'),
+                consolePanelJs         = path.join(testDir, 'dist', 'console-panel.js');
+
+            shell.exec(
+                COMMAND_TO_RUN,
+                {
+                    silent: SILENT,
+                    cwd: cwdToUse
+                },
+                function (exitCode, stdout, stderr) { // eslint-disable-line no-unused-vars
+                    expect(file(consolePanelJs)).to.equal(file(consolePanelJsOriginal));
+
+                    done();
+                }
+            );
+        });
     });
 });
