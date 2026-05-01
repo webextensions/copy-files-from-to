@@ -292,6 +292,30 @@ describe('package', function() {
             );
         });
 
+        it('should be able to minify a JS file when minifyJs is set via toMode', function (done) {
+            const testDir = path.join(__dirname, 'test-minify-js-via-to-mode');
+            const cwdToUse = testDir;
+
+            rimrafSync(path.join(cwdToUse, 'dist'));
+
+            const
+                sampleJsOriginal = path.join(testDir, 'expected-output', 'dist', 'sample.js'),
+                sampleJs         = path.join(testDir, 'dist', 'sample.js');
+
+            shell.exec(
+                COMMAND_TO_RUN,
+                {
+                    silent: SILENT,
+                    cwd: cwdToUse
+                },
+                function (exitCode, stdout, stderr) { // eslint-disable-line no-unused-vars
+                    expect(file(sampleJs)).to.equal(file(sampleJsOriginal));
+
+                    done();
+                }
+            );
+        });
+
         it('should be able to minify a JS file with custom terser options', function (done) {
             const testDir = path.join(__dirname, 'test-minify-js-with-terser-options');
             const cwdToUse = testDir;

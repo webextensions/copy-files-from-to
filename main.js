@@ -20,7 +20,12 @@ const getNeedsMinify = function (copyFile, copyFilesSettings) {
     let minifyJs = utils.booleanIntention(copyFilesSettings.minifyJs, false);
 
     const { toMode } = copyFile;
-    if (toMode === 'object' && toMode.minifyJs !== undefined && toMode.minifyJs !== null) {
+    if (
+        toMode !== null &&
+        typeof toMode === 'object' &&
+        toMode.minifyJs !== undefined &&
+        toMode.minifyJs !== null
+    ) {
         minifyJs = utils.booleanIntention(toMode.minifyJs, minifyJs);
     }
 

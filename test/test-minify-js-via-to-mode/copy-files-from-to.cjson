@@ -1,0 +1,13 @@
+{
+    "copyFiles": [
+        {
+            "from": "src/sample.js",
+            "to": {
+                "default": {
+                    "dest": "dist/sample.js",
+                    "minifyJs": true
+                }
+            }
+        }
+    ]
+}
